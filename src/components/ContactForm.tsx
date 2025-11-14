@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Mail, User, MessageSquare, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -39,17 +40,32 @@ export const ContactForm = () => {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    console.log("Form submitted:", data);
-    
-    toast.success("Message sent successfully!", {
-      description: "We'll get back to you as soon as possible.",
-    });
-    
-    form.reset();
-    setIsSubmitting(false);
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-email", {
+        body: data,
+      });
+
+      if (error) {
+        console.error("Error sending email:", error);
+        toast.error("Failed to send message", {
+          description: "Please try again later or contact us directly.",
+        });
+        return;
+      }
+
+      toast.success("Message sent successfully!", {
+        description: "We'll get back to you as soon as possible.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to send message", {
+        description: "Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
