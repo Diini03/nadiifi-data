@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -14,69 +13,74 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDatasetStore } from "@/store/useDatasetStore";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SectionCard } from "@/components/app/SectionCard";
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
   const clearAll = useDatasetStore((s) => s.clearAll);
+  const datasets = useDatasetStore((s) => s.datasets);
 
   useEffect(() => {
-    document.title = "Settings · CleanLab AI";
+    document.title = "Settings · CleanLab";
   }, []);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Configure your CleanLab AI experience.
-        </p>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18 }}
+      className="mx-auto max-w-2xl space-y-6"
+    >
+      <PageHeader title="Settings" description="Configure your CleanLab experience." />
 
-      <Card className="p-6 shadow-soft">
-        <h2 className="mb-4 font-semibold">Appearance</h2>
-        <div className="space-y-4">
-          <Row label="Theme" hint="Match your OS or pick manually.">
-            <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
-              </SelectContent>
-            </Select>
-          </Row>
-        </div>
-      </Card>
+      <SectionCard title="Appearance" description="Match your OS theme or pick manually.">
+        <Row label="Theme" hint="Choose light, dark, or match system preference.">
+          <Select value={theme} onValueChange={setTheme}>
+            <SelectTrigger className="h-9 w-36" aria-label="Select theme">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="light">Light</SelectItem>
+              <SelectItem value="dark">Dark</SelectItem>
+              <SelectItem value="system">System</SelectItem>
+            </SelectContent>
+          </Select>
+        </Row>
+      </SectionCard>
 
-      <Card className="p-6 shadow-soft">
-        <h2 className="mb-4 font-semibold">Workspace</h2>
-        <div className="space-y-4">
+      <SectionCard title="Workspace" description="Preferences for your local workspace.">
+        <div className="space-y-5">
           <Row label="Auto-save" hint="Persist changes to your browser automatically.">
-            <Switch defaultChecked disabled />
+            <Switch defaultChecked disabled aria-label="Toggle auto-save" />
           </Row>
           <Row label="Language" hint="More languages coming soon.">
             <Select defaultValue="en">
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="en">English</SelectItem></SelectContent>
+              <SelectTrigger className="h-9 w-36" aria-label="Select language">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
             </Select>
           </Row>
           <Row label="Notifications" hint="Toast alerts for cleaning results.">
-            <Switch defaultChecked />
+            <Switch defaultChecked aria-label="Toggle notifications" />
           </Row>
         </div>
-      </Card>
+      </SectionCard>
 
-      <Card className="border-destructive/30 p-6 shadow-soft">
-        <h2 className="mb-2 font-semibold text-destructive">Danger zone</h2>
-        <p className="text-sm text-muted-foreground">
-          Delete all locally stored datasets and history. This cannot be undone.
-        </p>
+      <SectionCard
+        title="Danger zone"
+        description={`Delete all ${datasets.length} locally stored dataset${datasets.length === 1 ? "" : "s"} and history. This cannot be undone.`}
+        className="border-destructive/30"
+      >
         <Button
           variant="destructive"
           size="sm"
-          className="mt-4"
+          className="h-9"
           onClick={async () => {
-            if (confirm("Delete all datasets and history?")) {
+            if (confirm("Delete all datasets and history? This cannot be undone.")) {
               await clearAll();
               toast.success("All data cleared");
             }
@@ -84,19 +88,19 @@ export default function Settings() {
         >
           Clear all data
         </Button>
-      </Card>
+      </SectionCard>
     </motion.div>
   );
 }
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <Label className="text-sm">{label}</Label>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <Label className="text-sm font-medium">{label}</Label>
+        {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
       </div>
-      {children}
+      <div className="shrink-0">{children}</div>
     </div>
   );
 }

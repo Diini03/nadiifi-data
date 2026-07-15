@@ -19,17 +19,19 @@ export function StatCard({ label, value, hint, icon: Icon, tone = "default" }: S
   }[tone];
 
   return (
-    <Card className="flex items-start justify-between gap-4 p-5 shadow-soft transition-shadow hover:shadow-card">
+    <Card className="flex items-start justify-between gap-3 p-4 shadow-soft transition-shadow duration-150 hover:shadow-card">
       <div className="min-w-0">
-        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {label}
         </div>
-        <div className="mt-2 truncate text-2xl font-semibold tracking-tight">{value}</div>
-        {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
+        <div className="mt-1.5 truncate text-2xl font-semibold tracking-tight text-foreground">
+          {value}
+        </div>
+        {hint && <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>}
       </div>
       {Icon && (
-        <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", iconTone)}>
-          <Icon className="h-5 w-5" />
+        <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md", iconTone)}>
+          <Icon className="h-4 w-4" strokeWidth={1.75} />
         </div>
       )}
     </Card>
