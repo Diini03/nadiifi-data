@@ -3,19 +3,21 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDatasetStore } from "@/store/useDatasetStore";
 import { StatCard } from "@/components/app/StatCard";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SectionCard } from "@/components/app/SectionCard";
+import { EmptyState } from "@/components/app/EmptyState";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   FileSpreadsheet,
   Rows3,
   Columns3,
-  AlertTriangle,
   Sparkles,
   HardDrive,
   Upload,
   ArrowRight,
   Download,
   Wand2,
+  BarChart3,
 } from "lucide-react";
 import { formatBytes, formatNumber, formatRelative } from "@/lib/format";
 
@@ -25,7 +27,7 @@ export default function Dashboard() {
   const loadDataset = useDatasetStore((s) => s.loadDataset);
 
   useEffect(() => {
-    document.title = "Dashboard · CleanLab AI";
+    document.title = "Dashboard · CleanLab";
   }, []);
 
   const totalRows = datasets.reduce((s, d) => s + d.rows, 0);
@@ -33,143 +35,218 @@ export default function Dashboard() {
   const totalSize = datasets.reduce((s, d) => s + d.fileSize, 0);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Overview of your datasets and cleaning activity.
-          </p>
-        </div>
-        <Button asChild className="gap-2 rounded-full shadow-glow">
-          <Link to="/app/upload"><Upload className="h-4 w-4" /> New dataset</Link>
-        </Button>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18 }}
+      className="space-y-8"
+    >
+      <PageHeader
+        title="Dashboard"
+        description="Overview of your datasets and cleaning activity."
+        actions={
+          <Button asChild size="sm" className="h-9 gap-2">
+            <Link to="/app/upload">
+              <Upload className="h-4 w-4" /> New dataset
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Datasets" value={datasets.length} icon={FileSpreadsheet} tone="primary" />
-        <StatCard label="Total rows" value={formatNumber(totalRows)} icon={Rows3} tone="default" />
-        <StatCard label="Total columns" value={formatNumber(totalCols)} icon={Columns3} tone="default" />
-        <StatCard label="Storage used" value={formatBytes(totalSize)} icon={HardDrive} tone="default" />
+        <StatCard label="Total rows" value={formatNumber(totalRows)} icon={Rows3} />
+        <StatCard label="Total columns" value={formatNumber(totalCols)} icon={Columns3} />
+        <StatCard label="Storage" value={formatBytes(totalSize)} icon={HardDrive} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="p-5 shadow-soft lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold">Recent datasets</h2>
-            {datasets.length > 0 && (
-              <Button asChild variant="ghost" size="sm" className="gap-1">
-                <Link to="/app/upload">Add <ArrowRight className="h-3.5 w-3.5" /></Link>
-              </Button>
-            )}
-          </div>
-          {datasets.length === 0 ? (
-            <EmptyDatasets />
-          ) : (
-            <div className="space-y-2">
-              {datasets.slice(0, 6).map((d) => (
-                <Link
-                  key={d.id}
-                  to={`/app/datasets/${d.id}`}
-                  onClick={() => loadDataset(d.id)}
-                  className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 transition-colors hover:bg-accent/40"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
-                      <FileSpreadsheet className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{d.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatNumber(d.rows)} rows · {d.columns} cols · {formatBytes(d.fileSize)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{formatRelative(d.updatedAt)}</div>
+        <SectionCard
+          className="lg:col-span-2"
+          title="Recent datasets"
+          description={datasets.length > 0 ? `${datasets.length} total` : "Nothing yet"}
+          padded={false}
+          action={
+            datasets.length > 0 && (
+              <Button asChild variant="ghost" size="sm" className="h-8 gap-1 text-xs">
+                <Link to="/app/upload">
+                  Add <ArrowRight className="h-3 w-3" />
                 </Link>
-              ))}
+              </Button>
+            )
+          }
+        >
+          {datasets.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                icon={FileSpreadsheet}
+                title="No datasets yet"
+                description="Upload your first CSV or Excel file to get an instant quality report."
+                action={
+                  <Button asChild size="sm" className="gap-2">
+                    <Link to="/app/upload">
+                      <Upload className="h-4 w-4" /> Upload dataset
+                    </Link>
+                  </Button>
+                }
+              />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="px-6 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Name
+                    </th>
+                    <th className="px-3 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Rows
+                    </th>
+                    <th className="px-3 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Cols
+                    </th>
+                    <th className="px-3 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Size
+                    </th>
+                    <th className="px-6 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Updated
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {datasets.slice(0, 8).map((d) => (
+                    <tr
+                      key={d.id}
+                      className="group cursor-pointer border-b border-border/60 last:border-b-0 hover:bg-muted/40"
+                      onClick={() => loadDataset(d.id)}
+                    >
+                      <td className="px-6 py-3">
+                        <Link
+                          to={`/app/datasets/${d.id}`}
+                          className="flex min-w-0 items-center gap-2.5"
+                        >
+                          <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span
+                            className="truncate font-medium text-foreground group-hover:text-primary"
+                            title={d.name}
+                          >
+                            {d.name}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
+                        {formatNumber(d.rows)}
+                      </td>
+                      <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
+                        {d.columns}
+                      </td>
+                      <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
+                        {formatBytes(d.fileSize)}
+                      </td>
+                      <td className="px-6 py-3 text-right text-xs text-muted-foreground">
+                        {formatRelative(d.updatedAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </Card>
+        </SectionCard>
 
         <div className="space-y-6">
-          <Card className="p-5 shadow-soft">
-            <h2 className="mb-4 font-semibold">Quick actions</h2>
-            <div className="space-y-2">
-              <QuickAction to="/app/upload" icon={Upload} label="Upload a dataset" desc="CSV, Excel, JSON" />
+          <SectionCard title="Quick actions">
+            <div className="space-y-1.5">
+              <QuickAction
+                to="/app/upload"
+                icon={Upload}
+                label="Upload a dataset"
+                desc="CSV, Excel, JSON"
+              />
               <QuickAction
                 to={datasets[0] ? `/app/datasets/${datasets[0].id}/cleaning` : "/app/upload"}
                 icon={Wand2}
                 label="Open cleaning studio"
                 desc="Fix issues in one click"
+                disabled={!datasets[0]}
               />
               <QuickAction
                 to={datasets[0] ? `/app/datasets/${datasets[0].id}/visualize` : "/app/upload"}
-                icon={Sparkles}
+                icon={BarChart3}
                 label="Auto-visualize"
                 desc="Charts from your data"
+                disabled={!datasets[0]}
+              />
+              <QuickAction
+                to={datasets[0] ? `/app/datasets/${datasets[0].id}/overview` : "/app/upload"}
+                icon={Sparkles}
+                label="AI insights"
+                desc="Plain-English summary"
+                disabled={!datasets[0]}
               />
             </div>
-          </Card>
+          </SectionCard>
 
-          <Card className="p-5 shadow-soft">
-            <h2 className="mb-4 font-semibold">Recent exports</h2>
+          <SectionCard title="Recent exports">
             {exports.length === 0 ? (
-              <div className="rounded-xl border border-dashed py-6 text-center text-xs text-muted-foreground">
-                No exports yet
-              </div>
+              <EmptyState compact icon={Download} title="No exports yet" description="Downloads appear here." />
             ) : (
-              <div className="space-y-2">
-                {exports.slice(0, 4).map((e) => (
+              <div className="space-y-2.5">
+                {exports.slice(0, 5).map((e) => (
                   <div key={e.id} className="flex items-center justify-between text-sm">
                     <div className="flex min-w-0 items-center gap-2">
-                      <Download className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="truncate">{e.datasetName}</span>
-                      <span className="text-xs text-muted-foreground uppercase">.{e.format}</span>
+                      <Download className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate" title={e.datasetName}>
+                        {e.datasetName}
+                      </span>
+                      <span className="text-xs uppercase text-muted-foreground">
+                        {e.format}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{formatRelative(e.timestamp)}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {formatRelative(e.timestamp)}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
-          </Card>
+          </SectionCard>
         </div>
       </div>
     </motion.div>
   );
 }
 
-function QuickAction({ to, icon: Icon, label, desc }: { to: string; icon: any; label: string; desc: string }) {
+function QuickAction({
+  to,
+  icon: Icon,
+  label,
+  desc,
+  disabled,
+}: {
+  to: string;
+  icon: any;
+  label: string;
+  desc: string;
+  disabled?: boolean;
+}) {
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent/40"
+      aria-disabled={disabled}
+      className={
+        "group flex items-center gap-3 rounded-md border border-transparent px-2 py-2 transition-colors hover:border-border hover:bg-muted/40 " +
+        (disabled ? "pointer-events-none opacity-50" : "")
+      }
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
-        <Icon className="h-4 w-4" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground group-hover:bg-primary-soft group-hover:text-primary">
+        <Icon className="h-4 w-4" strokeWidth={1.75} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-muted-foreground">{desc}</div>
+        <div className="text-[13px] font-medium">{label}</div>
+        <div className="text-[11px] text-muted-foreground">{desc}</div>
       </div>
-      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
     </Link>
-  );
-}
-
-function EmptyDatasets() {
-  return (
-    <div className="rounded-2xl border border-dashed p-10 text-center">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary">
-        <AlertTriangle className="h-5 w-5" />
-      </div>
-      <h3 className="font-medium">No datasets yet</h3>
-      <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-        Upload your first CSV or Excel file to get an instant quality report.
-      </p>
-      <Button asChild className="mt-4 gap-2 rounded-full">
-        <Link to="/app/upload"><Upload className="h-4 w-4" /> Upload dataset</Link>
-      </Button>
-    </div>
   );
 }

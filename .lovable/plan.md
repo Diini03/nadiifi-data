@@ -1,115 +1,159 @@
 
-## CleanLab AI — build plan
+# CleanLab AI — Production Polish Plan
 
-Replace the current Get In Touch page and repurpose the project into **CleanLab AI**, a premium in-browser data cleaning SaaS. All decisions were left to me — here's the direction:
+A full audit + systematic refinement pass. No new features; every change is UX/UI/frontend quality. Backend, cleaning engine, and store logic stay untouched.
 
-- **Backend**: All in-browser. CSV/Excel parsing, profiling, cleaning, and charts run client-side. No FastAPI/SQLite (not possible on Lovable); datasets persist in `localStorage` + IndexedDB for large files.
-- **Auth & persistence**: No sign-in. Single-session with local persistence. Fastest to ship, matches "Upload → Clean → Download" flow.
-- **AI**: Wired to Lovable AI Gateway (`google/gemini-2.5-flash`) for dataset summary, cleaning suggestions, and issue explanations.
-- **Scope**: Full UI on every sidebar page, real logic on the core cleaning path. PDF reports, command palette, and Excel export are wired but light on polish; can iterate.
+## 1. Brand & Header
 
-### Pages / routes
+- Replace the "CleanLab AI" wordmark in the sidebar/header with a **custom SVG brand mark**: a minimalist "data cube + spark" glyph (rounded square, offset grid dots, single accent spark). Rendered as an inline `<Logo />` component in `src/components/brand/Logo.tsx` (works in light/dark via `currentColor` + accent token).
+- Sidebar header: logo only when collapsed; logo + micro wordmark ("cleanlab") in a refined type treatment when expanded — set in tracking-tight, `text-[13px]`, medium weight. Proper 12px gap, 16px vertical padding.
+- Top header: add left-side breadcrumbs (Home / Section / Dataset), keep search + theme toggle right. Height standardized to 56px, `border-b`, subtle `backdrop-blur`.
 
-```text
-/                    Landing (hero, features, FAQ, footer)
-/app                 Layout with sidebar + topbar
-  /dashboard         KPI cards, recent datasets, quick actions
-  /upload            Drag-and-drop CSV/Excel, preview first 20 rows
-  /datasets/:id      Overview + tabs: Profile · Columns · Cleaning · Visualize · Export
-  /history           Cleaning + export history
-  /settings          Theme, autosave, language stub
+## 2. Design system (tokens)
+
+Consolidated in `src/index.css` + `tailwind.config.ts`:
+
+- **Radii**: `--radius-sm 8`, `--radius-md 10`, `--radius-lg 12`, `--radius-xl 16`. Cards use `lg`, inputs/buttons use `md`, chips use `sm`. Current `--radius: 1rem` is too round for a Linear/Vercel feel — drop base to `0.75rem`.
+- **Spacing scale**: enforce 4/8/12/16/24/32 rhythm; remove ad-hoc `p-5`, `p-10` in favor of `p-6` / `p-8`.
+- **Shadows**: keep `shadow-sm / -card / -elevated`, retune to be flatter (Linear-style). Remove `shadow-glow` from non-primary elements.
+- **Typography scale**: `text-xs 12`, `sm 13`, base 14, `lg 16`, `xl 18`, `2xl 22`, `3xl 28`, `4xl 34` — page H1 becomes `text-2xl font-semibold tracking-tight` (not `text-3xl font-bold`). Body copy `text-sm`, helper `text-xs text-muted-foreground`.
+- **Sizing primitives**: buttons `h-9` default / `h-8` sm / `h-10` lg; inputs `h-9`; icon buttons `h-9 w-9`; icon size 16px default, 14px in dense rows.
+- **Color**: keep blue primary, but soften `--background` to `0 0% 100%` (light) and neutralize `--muted` slightly cooler. Add `--border-strong` for table dividers.
+- Remove `src/App.css` (leftover Vite defaults, unused, conflicts with layout).
+
+## 3. Reusable primitives
+
+New small wrappers to enforce consistency:
+
+- `PageHeader` — title, description, actions slot, optional breadcrumb.
+- `SectionCard` — Card with standard padding (`p-6`), header row, optional action.
+- `EmptyState` — icon, title, description, CTA.
+- `DataTable` — wraps `@tanstack/react-table`: sticky header, sortable, filterable, resizable cols, pagination footer, skeleton rows, empty state, horizontal scroll container (`overflow-x-auto`) so tables never blow out layout.
+- `Kbd`, `StatusDot`, `Chip` for consistent inline UI.
+
+## 4. Page-by-page polish
+
+**Landing** (`src/pages/Landing.tsx`): replace generic hero with tighter grid; brand mark + accent gradient behind, feature bento (3+2), single primary CTA, honest footer. Keep copy, retune spacing + type.
+
+**AppLayout** (`src/pages/app/Layout.tsx`): breadcrumbs, constrain `main` to `max-w-[1400px] mx-auto w-full`, standard `px-6 py-6 md:px-8 md:py-8`. Header sticky, sidebar sticky, no double scroll.
+
+**Sidebar** (`AppSidebar.tsx`): tighter groups, 4px between items, active state = `bg-accent text-accent-foreground` with 2px left accent bar, icon-only mode gets tooltips (already partly there), Recent datasets truncate with `max-w-[160px]`, dataset-workspace links disabled with tooltip when no dataset instead of silent 50% opacity.
+
+**Dashboard**: shrink KPI cards (label 12px, value `text-2xl`, icon 16px in a `size-8` tile), 4-up on ≥lg, 2-up on md, 1-up on sm. Recent datasets → real table with columns (Name, Rows, Cols, Size, Updated). Quick actions become 2×2 grid on the right. Add "Needs attention" tile summarizing issue counts across datasets.
+
+**Upload**: dropzone with proper hover/active/error states, animated dashed border (CSS, no bg image), progress bar during parse, success toast + inline preview (first 5 rows), file-size + type validation with friendly errors ("We couldn't read this file — try CSV or XLSX under 25 MB").
+
+**DatasetDetail**: tab bar aligns with header, tab content uses SectionCard grid. Overview shows profile stats + AI summary card; Columns tab uses DataTable with search; Cleaning Studio: left ops list, right diff preview, sticky action bar; Visualize: responsive chart grid `grid-cols-1 md:grid-cols-2`, charts wrapped with `ResponsiveContainer` height 260, consistent legend + tooltip. Export tab: cards per format with size estimate.
+
+**History**: DataTable with filters (type: cleaning/export, date range). Empty state.
+
+**Settings**: sectioned form (Appearance / Data / About), Switch rows with description below label, danger zone at bottom.
+
+**NotFound**: friendly, brand mark, back-to-app CTA.
+
+## 5. Tables
+
+Single `DataTable` used everywhere. `overflow-x-auto` wrapper, `min-w-full`, sticky `thead` with `bg-card/95 backdrop-blur`, zebra off, row hover `bg-muted/40`, cell padding `px-3 py-2`, header `text-xs uppercase tracking-wide text-muted-foreground`. Truncate long filenames with `title` tooltip.
+
+## 6. Forms & inputs
+
+Consistent label (`text-xs font-medium mb-1.5`), helper (`text-xs text-muted-foreground mt-1`), error (`text-xs text-destructive mt-1` + red ring). All inputs `h-9 rounded-md`. Focus ring uses `--ring` token.
+
+## 7. Charts (`AutoCharts.tsx`)
+
+Uniform card wrapper, height 260, `ResponsiveContainer`, muted gridlines (`stroke="hsl(var(--border))"`), tooltip uses card token, legend at top-right in `text-xs`, empty state when series is empty, skeleton on load.
+
+## 8. Interactions & motion
+
+- Global transition tokens: `transition-colors duration-150`, `transition-transform duration-200`.
+- Cards: `hover:shadow-card hover:-translate-y-0.5` (only clickable ones).
+- Buttons: press scale `active:scale-[0.98]`.
+- Page transitions kept subtle (framer `fade + 4px y`, 180ms).
+- Skeletons for datasets, tables, charts, KPI on first render.
+- Toast for every mutation (save, undo, export, delete) — use existing `use-toast`.
+
+## 9. Accessibility
+
+- Every icon-only button gets `aria-label` (sidebar trigger, theme toggle, close, upload remove).
+- Single `<main>` in layout only.
+- Landmarks: `<header>`, `<aside>` (sidebar wrapper already handles), `<nav aria-label="Primary">`, `<main>`.
+- Focus-visible ring on all interactive elements via a global utility.
+- Contrast pass: replace `text-muted-foreground/50` and `text-gray-*` occurrences with tokens.
+- Keyboard: Command palette (⌘K) already wired; ensure Escape closes, arrow keys navigate. Tab order verified per page.
+- Touch targets ≥ 40×40 on mobile (bump icon buttons via `min-h-10 min-w-10` on primary tap targets).
+- `h-screen` → `h-dvh` for full-height layouts.
+
+## 10. Responsive
+
+- Sidebar auto-collapses < md; header shows menu trigger.
+- Grids: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` KPI; `lg:grid-cols-3` main dashboard split.
+- Tables inside `overflow-x-auto` with `min-w-[720px]` fallback.
+- Dialogs `max-h-[90dvh] overflow-y-auto`, `w-[calc(100%-2rem)]` on mobile.
+- No `h-screen`, no fixed pixel widths outside sidebar.
+- Test breakpoints: 360, 768, 1024, 1280, 1536.
+
+## 11. Error handling
+
+- Replace raw error strings with `{ title, description, hint }` pattern via toast.
+- Parse failures → "This file couldn't be read. Please check the format and try again."
+- AI failures → "The assistant is unavailable right now. You can still clean manually."
+- Route errors → NotFound with helpful links.
+
+## 12. Performance
+
+- `React.lazy` + `Suspense` around every route in `App.tsx`.
+- Memoize heavy table rows, chart data derivations (`useMemo`).
+- Virtualize preview table (>500 rows) via `@tanstack/react-virtual` if already installed; otherwise cap preview to 200 rows with "load more".
+- Debounce column search (150ms).
+
+## 13. Cleanup
+
+- Delete `src/App.css` (unused, conflicts).
+- Delete `supabase/functions/send-contact-email/` (leftover from prior project).
+- Remove unused imports flagged during pass.
+
+## Files touched (approx.)
+
+```
+src/index.css                        (tokens retune)
+tailwind.config.ts                   (radius, fontSize, keyframes)
+src/App.tsx                          (lazy routes)
+src/components/brand/Logo.tsx        NEW
+src/components/app/AppSidebar.tsx    (logo, spacing, active state)
+src/components/app/PageHeader.tsx    NEW
+src/components/app/SectionCard.tsx   NEW
+src/components/app/EmptyState.tsx    NEW
+src/components/app/DataTable.tsx     NEW (generic)
+src/components/app/DatasetTable.tsx  (migrate to DataTable)
+src/components/app/StatCard.tsx      (retune)
+src/components/app/CommandPalette.tsx (a11y polish)
+src/components/app/ThemeToggle.tsx   (aria-label, size)
+src/components/charts/AutoCharts.tsx (uniform wrapper)
+src/pages/Landing.tsx                (redesign)
+src/pages/NotFound.tsx               (rebrand)
+src/pages/app/Layout.tsx             (header, breadcrumbs, main container)
+src/pages/app/Dashboard.tsx          (polish)
+src/pages/app/Upload.tsx             (dropzone polish)
+src/pages/app/DatasetDetail.tsx     (tabs, sticky action bar)
+src/pages/app/History.tsx            (DataTable)
+src/pages/app/Settings.tsx           (sections)
+src/App.css                          DELETE
+supabase/functions/send-contact-email/  DELETE
 ```
 
-The single dataset detail route uses tabs so users stay in flow. Sidebar links map to routes above; `Cleaning Studio` / `Visualization` / `Reports` open the last-active dataset.
+## Out of scope
 
-### Design system
+- No changes to `src/lib/cleanlab/*` (engine untouched).
+- No changes to `useDatasetStore` shape.
+- No new backend endpoints; `ai-assist` edge function unchanged.
+- No dependency additions beyond what's already installed.
 
-- Primary `#2563EB`, background `#FAFAFA`, cards white, radius 16px, Inter, subtle shadows, 8-pt spacing.
-- Dark mode via `next-themes`.
-- All colors go through `index.css` HSL tokens + `tailwind.config.ts` — no hardcoded hex in components.
-- Framer Motion for page transitions, success ticks, and card entrances. Skeletons for loading.
+## Acceptance
 
-### Core engine (client-side, `src/lib/cleanlab/`)
-
-- `parse.ts` — CSV via `papaparse`, XLSX via `xlsx` (SheetJS). Auto-detect delimiter, header row, encoding.
-- `types.ts` — `Dataset`, `Column`, `Issue`, `Operation`, `HistoryEntry`.
-- `infer.ts` — infer column types: number, integer, float, boolean, date, email, phone, url, categorical, text.
-- `profile.ts` — per-column stats: missing %, unique count, mode, min/max/mean/median/std, top values, histogram bins, IQR outliers, z-score outliers.
-- `issues.ts` — detects duplicates, missing values, mixed types, invalid emails/phones, whitespace, inconsistent casing, outliers, constant columns, high-cardinality IDs.
-- `operations.ts` — pure functions for each op below, each returns `{ dataset, diff }`.
-- `history.ts` — undo/redo stack with immutable snapshots (structural sharing per column).
-- `store.ts` — Zustand store: current dataset, history, selected column, autosave to IndexedDB via `idb-keyval`.
-
-**Cleaning operations shipped**: remove duplicates, fill nulls (mean/median/mode/constant), drop null rows, rename columns, trim, lowercase, uppercase, title-case, convert dtype, replace values, standardize text, detect invalid emails/phones, remove extra spaces, parse dates, IQR/z-score outlier removal, manual row filter. Each op is one click with preview + undo.
-
-### AI features (Lovable AI, streaming)
-
-Edge function `ai-assist` proxies chat completions with `LOVABLE_API_KEY`. Client sends a compact profile digest (no raw PII beyond column names + stats). Handles 429/402. Surfaces:
-
-- Dataset summary card on Overview
-- "Suggest cleaning" button in Cleaning Studio → returns ordered ops with one-click apply
-- "Explain this issue" tooltip on each detected issue
-- Insights panel with 3–5 business observations
-
-### Visualization
-
-- Recharts: histogram, bar, scatter, line, pie, correlation heatmap (custom SVG grid), box plot (custom).
-- PNG download via `html-to-image`; SVG via native serialization.
-
-### Export
-
-- CSV via papaparse, JSON via `JSON.stringify`, Excel via SheetJS.
-- Cleaning report: HTML → print-to-PDF using `window.print` with a dedicated print stylesheet (no server needed).
-
-### Sidebar / shell
-
-- `shadcn/ui` `Sidebar` with `collapsible="icon"`, keyboard-navigable, ARIA labels.
-- Topbar: global search (`⌘K` command palette via `cmdk` — jumps to datasets, columns, ops), dataset switcher, theme toggle, notifications popover.
-
-### State & persistence
-
-- Zustand store, autosaved to IndexedDB on every op.
-- Datasets index in `localStorage` for quick listing.
-- Recent activity, favorites, pinned datasets stored alongside.
-
-### Files to add (high level)
-
-```text
-src/pages/Landing.tsx
-src/pages/app/Layout.tsx
-src/pages/app/Dashboard.tsx
-src/pages/app/Upload.tsx
-src/pages/app/DatasetDetail.tsx      (+ Profile/Columns/Cleaning/Visualize/Export tabs)
-src/pages/app/History.tsx
-src/pages/app/Settings.tsx
-src/components/app/AppSidebar.tsx
-src/components/app/CommandPalette.tsx
-src/components/app/DatasetTable.tsx  (TanStack Table)
-src/components/app/StatCard.tsx
-src/components/app/IssueCard.tsx
-src/components/app/ColumnDrawer.tsx
-src/components/charts/*.tsx
-src/lib/cleanlab/*.ts
-src/store/useDatasetStore.ts
-supabase/functions/ai-assist/index.ts
-```
-
-### Files removed / repurposed
-
-- Delete `src/components/ContactForm.tsx`.
-- Replace `src/pages/Index.tsx` content with the new Landing page.
-- Keep `src/integrations/supabase/client.ts` (auto-generated, untouched).
-
-### Dependencies to install
-
-`papaparse`, `xlsx`, `zustand`, `idb-keyval`, `cmdk` (already via shadcn), `html-to-image`, `next-themes`, `date-fns`, `@tanstack/react-table`, `recharts` (already), `framer-motion` (already).
-
-### Out of scope for this pass
-
-- Real accounts / multi-device sync (single-session by design).
-- Server-side large-file streaming (files > ~50MB may be slow in-browser; we'll warn).
-- Localization beyond an English UI with the Settings language toggle stubbed.
-
-### What you'll see when it's done
-
-A polished landing page, a proper app shell with sidebar + `⌘K`, drag-and-drop upload that instantly profiles the file, a Cleaning Studio with detected issues + one-click fixes + undo/redo, auto-generated charts, and CSV/Excel/JSON/PDF export — with AI summaries and cleaning suggestions available on every dataset.
+- No horizontal page scroll at 360/768/1024/1280.
+- One H1 per page, consistent type scale.
+- Every icon-only control has an accessible name.
+- Tables scroll internally, never break layout.
+- All routes lazy-loaded; initial JS shrinks measurably.
+- Sidebar shows brand mark, not "CleanLab AI" wordmark.
+- Visual language reads closer to Linear/Vercel/Supabase than a stock template.
