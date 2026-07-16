@@ -22,7 +22,7 @@ export default function Settings() {
   const datasets = useDatasetStore((s) => s.datasets);
 
   useEffect(() => {
-    document.title = "Settings · CleanLab";
+    document.title = "Settings · NadiifiData";
   }, []);
 
   return (
@@ -32,7 +32,7 @@ export default function Settings() {
       transition={{ duration: 0.18 }}
       className="mx-auto max-w-2xl space-y-6"
     >
-      <PageHeader title="Settings" description="Configure your CleanLab experience." />
+      <PageHeader title="Settings" description="Configure your NadiifiData experience." />
 
       <SectionCard title="Appearance" description="Match your OS theme or pick manually.">
         <Row label="Theme" hint="Choose light, dark, or match system preference.">

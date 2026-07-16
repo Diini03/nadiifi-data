@@ -71,7 +71,7 @@ export default function DatasetDetail() {
   }, [id, loadDataset]);
 
   useEffect(() => {
-    if (current) document.title = `${current.name} · CleanLab`;
+    if (current) document.title = `${current.name} · NadiifiData`;
   }, [current]);
 
   if (loading || !current) {

@@ -12,7 +12,7 @@ export default function History() {
   const exports = useDatasetStore((s) => s.exports);
 
   useEffect(() => {
-    document.title = "History · CleanLab";
+    document.title = "History · NadiifiData";
   }, []);
 
   return (
