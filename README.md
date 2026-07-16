@@ -1,73 +1,173 @@
-# Welcome to your Lovable project
+# 🧹 NadiifiData
 
-## Project info
+> Clean data. Better decisions.
 
-**URL**: https://lovable.dev/projects/32294de4-fd8b-42ad-af83-84d7d8734d90
+NadiifiData is a modern data cleaning and profiling platform built for data analysts, researchers, NGOs, students, and businesses. Upload messy datasets, identify data quality issues, clean them with intelligent tools, and export analysis-ready data.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🌐 Live Demo
 
-**Use Lovable**
+**Website:** https://YOUR-LINK.vercel.app
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/32294de4-fd8b-42ad-af83-84d7d8734d90) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📸 Preview
 
-**Use your preferred IDE**
+> Add screenshots here
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# ✨ Features
 
-Follow these steps:
+- Upload CSV & Excel datasets
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Automatic dataset profiling
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Missing value detection
 
-# Step 3: Install the necessary dependencies.
-npm i
+- Duplicate detection
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- Data type validation
 
-**Edit a file directly in GitHub**
+- Outlier detection
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Column statistics
 
-**Use GitHub Codespaces**
+- Interactive charts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Data quality score
 
-## What technologies are used for this project?
+- Export cleaned datasets
 
-This project is built with:
+- Responsive UI
 
-- Vite
-- TypeScript
+- Dark Mode
+
+---
+
+# 🚀 Tech Stack
+
+Frontend
+
 - React
-- shadcn-ui
+
+- TypeScript
+
 - Tailwind CSS
 
-## How can I deploy this project?
+- shadcn/ui
 
-Simply open [Lovable](https://lovable.dev/projects/32294de4-fd8b-42ad-af83-84d7d8734d90) and click on Share -> Publish.
+- TanStack Table
 
-## Can I connect a custom domain to my Lovable project?
+Backend
 
-Yes, you can!
+- FastAPI
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Python
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Data
+
+- Pandas
+
+- NumPy
+
+Charts
+
+- Recharts
+
+Deployment
+
+- Vercel
+
+---
+
+# 🏗️ Architecture
+
+Upload Dataset
+
+↓
+
+Profiling Engine
+
+↓
+
+Cleaning Engine
+
+↓
+
+Visualization
+
+↓
+
+Export
+
+---
+
+# 📂 Project Structure
+
+frontend/
+
+backend/
+
+components/
+
+services/
+
+hooks/
+
+utils/
+
+public/
+
+---
+
+# ⚙️ Installation
+
+```bash
+
+git clone https://github.com/Diini03/nadiifi-data.git
+
+cd nadiifi-data
+
+npm install
+
+npm run dev
+
+```
+
+---
+
+# 📈 Roadmap
+
+- AI-powered cleaning suggestions
+
+- Data quality history
+
+- Team workspaces
+
+- Scheduled imports
+
+- Cloud storage integrations
+
+---
+
+# 🔒 Security
+
+- File validation
+
+- Input sanitization
+
+- Secure uploads
+
+- Protected API routes
+
+---
+
+# 📄 License
+
+MIT
+
+---
+
+Built with ❤️ by Diini Kahiye
