@@ -8,7 +8,7 @@ NadiifiData is a modern data cleaning and profiling platform designed for data a
 
 ## Preview
 
-![NadiifiData preview](/__l5e/assets-v1/5a051c07-f9b9-4bba-855c-8c5ab269cf7d/nadiifidata-preview.png)
+![NadiifiData preview](https://cleanlab-ai.lovable.app/__l5e/assets-v1/5a051c07-f9b9-4bba-855c-8c5ab269cf7d/nadiifidata-preview.png)
 
 ---
 
