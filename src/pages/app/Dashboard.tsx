@@ -27,7 +27,7 @@ export default function Dashboard() {
   const loadDataset = useDatasetStore((s) => s.loadDataset);
 
   useEffect(() => {
-    document.title = "Dashboard · CleanLab";
+    document.title = "Dashboard · NadiifiData";
   }, []);
 
   const totalRows = datasets.reduce((s, d) => s + d.rows, 0);

@@ -26,7 +26,7 @@ export default function Upload() {
   const addDataset = useDatasetStore((s) => s.addDataset);
 
   useEffect(() => {
-    document.title = "Upload · CleanLab";
+    document.title = "Upload · NadiifiData";
   }, []);
 
   const validate = (f: File): string | null => {

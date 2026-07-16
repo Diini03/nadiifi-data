@@ -9,7 +9,7 @@ const NotFound = () => {
 
   useEffect(() => {
     console.error("404: route not found:", location.pathname);
-    document.title = "Not found · CleanLab";
+    document.title = "Not found · NadiifiData";
   }, [location.pathname]);
 
   return (

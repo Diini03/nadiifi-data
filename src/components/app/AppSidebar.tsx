@@ -61,14 +61,9 @@ export function AppSidebar() {
         <NavLink
           to="/"
           className="flex items-center gap-2.5 rounded-md px-1.5 py-1 text-foreground transition-colors hover:bg-accent/50"
-          aria-label="CleanLab home"
+          aria-label="NadiifiData home"
         >
-          <Logo size={22} />
-          {!collapsed && (
-            <span className="text-[13px] font-semibold tracking-tight leading-none">
-              cleanlab
-            </span>
-          )}
+          <Logo size={22} withWordmark={!collapsed} wordmarkClassName="text-[13px]" />
         </NavLink>
       </SidebarHeader>
 

@@ -50,24 +50,43 @@ export default function Landing() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Nav */}
-      <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
-          <Link to="/" className="flex items-center gap-2" aria-label="CleanLab home">
-            <Logo size={22} />
-            <span className="text-[14px] font-semibold tracking-tight">cleanlab</span>
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
+          <Link
+            to="/"
+            className="group flex items-center gap-2.5 rounded-md transition-opacity hover:opacity-90"
+            aria-label="NadiifiData home"
+          >
+            <Logo size={26} withWordmark wordmarkClassName="text-[15px]" />
           </Link>
-          <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
-            <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Features</a>
-            <a href="#testimonials" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Reviews</a>
-            <a href="#faq" className="text-sm text-muted-foreground transition-colors hover:text-foreground">FAQ</a>
+
+          <nav
+            className="hidden items-center gap-1 rounded-full border border-border/60 bg-background/60 px-1.5 py-1 shadow-soft backdrop-blur md:flex"
+            aria-label="Primary"
+          >
+            {[
+              { href: "#features", label: "Features" },
+              { href: "#testimonials", label: "Reviews" },
+              { href: "#faq", label: "FAQ" },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="rounded-full px-3.5 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
-          <div className="flex items-center gap-1.5">
-            <Button asChild variant="ghost" size="sm" className="h-8">
-              <Link to="/app/dashboard">Dashboard</Link>
+
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden h-9 px-3 text-[13px] font-medium sm:inline-flex">
+              <Link to="/app/dashboard">Sign in</Link>
             </Button>
-            <Button asChild size="sm" className="h-8 gap-1.5">
+            <Button asChild size="sm" className="h-9 gap-1.5 rounded-full px-4 text-[13px] font-medium shadow-sm">
               <Link to="/app/upload">
-                Start <ArrowRight className="h-3.5 w-3.5" />
+                Get started
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
           </div>
@@ -259,12 +278,9 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t bg-background">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 md:flex-row md:px-6">
-          <div className="flex items-center gap-2">
-            <Logo size={18} />
-            <span className="text-sm font-medium">cleanlab</span>
-          </div>
+          <Logo size={20} withWordmark wordmarkClassName="text-[13px]" />
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} CleanLab · Built for analysts
+            © {new Date().getFullYear()} NadiifiData · Clean data. Better decisions.
           </p>
         </div>
       </footer>
