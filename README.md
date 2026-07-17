@@ -1,10 +1,3 @@
-# NadiifiData
-
-**Clean data. Better decisions.**
-
-NadiifiData is a modern data cleaning and profiling platform designed for data analysts, researchers, NGOs, students, and businesses who work with messy, real-world datasets. Instead of spending hours writing scripts to fix formatting, remove duplicates, or hunt down missing values, users can upload a file, review automatically generated quality reports, and apply intelligent cleaning operations from a single interface — then export analysis-ready data in the format of their choice.
-
----
 
 # NadiifiData
 
