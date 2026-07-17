@@ -76,7 +76,10 @@ export type Operation =
   | { kind: "replace"; column: string; find: string; replace: string }
   | { kind: "remove_extra_spaces"; column: string }
   | { kind: "parse_date"; column: string }
-  | { kind: "remove_outliers"; column: string; method: "iqr" | "zscore" };
+  | { kind: "remove_outliers"; column: string; method: "iqr" | "zscore" }
+  | { kind: "drop_empty_rows" }
+  | { kind: "drop_empty_columns" }
+  | { kind: "drop_duplicate_columns" };
 
 export interface HistoryEntry {
   id: string;
