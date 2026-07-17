@@ -1,8 +1,11 @@
+
 # NadiifiData
 
 **Clean data. Better decisions.**
 
-NadiifiData is a modern data cleaning and profiling platform designed for data analysts, researchers, NGOs, students, and businesses who work with messy, real-world datasets. Instead of spending hours writing scripts to fix formatting, remove duplicates, or hunt down missing values, users can upload a file, review automatically generated quality reports, and apply intelligent cleaning operations from a single interface — then export analysis-ready data in the format of their choice.
+NadiifiData is a focused, in-browser data-quality workspace. Upload a messy CSV or Excel file, review the issues automatically detected in it, apply cleaning fixes with one click, then download the cleaned dataset — or continue straight to [XogArag](https://xog-arag.vercel.app) for visualization and dashboards.
+
+**Live app:** [https://nadiifi-data.vercel.app/](https://nadiifi-data.vercel.app/)
 
 ---
 

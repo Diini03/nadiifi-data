@@ -135,6 +135,45 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
       }
       break;
     }
+    case "drop_empty_rows": {
+      rows = rows.filter((r) => Object.values(r).some((v) => !isNullish(v)));
+      break;
+    }
+    case "drop_empty_columns": {
+      const emptyCols = ds.columns
+        .filter((c) => c.stats.missingPct >= 100)
+        .map((c) => c.name);
+      if (emptyCols.length) {
+        rows = rows.map((r) => {
+          const copy = { ...r };
+          for (const c of emptyCols) delete copy[c];
+          return copy;
+        });
+      }
+      break;
+    }
+    case "drop_duplicate_columns": {
+      const cols = ds.columns.map((c) => c.name);
+      const toDrop = new Set<string>();
+      for (let i = 0; i < cols.length; i++) {
+        if (toDrop.has(cols[i])) continue;
+        for (let j = i + 1; j < cols.length; j++) {
+          if (toDrop.has(cols[j])) continue;
+          const same = ds.rows.every(
+            (r) => String(r[cols[i]] ?? "") === String(r[cols[j]] ?? ""),
+          );
+          if (same) toDrop.add(cols[j]);
+        }
+      }
+      if (toDrop.size) {
+        rows = rows.map((r) => {
+          const copy = { ...r };
+          for (const c of toDrop) delete copy[c];
+          return copy;
+        });
+      }
+      break;
+    }
   }
 
   return reprofile({ ...ds, rows });
@@ -156,5 +195,8 @@ export function operationLabel(op: Operation): string {
     case "remove_extra_spaces": return `Collapse spaces in ${op.column}`;
     case "parse_date": return `Parse dates in ${op.column}`;
     case "remove_outliers": return `Remove ${op.method.toUpperCase()} outliers in ${op.column}`;
+    case "drop_empty_rows": return "Drop empty rows";
+    case "drop_empty_columns": return "Drop empty columns";
+    case "drop_duplicate_columns": return "Drop duplicate columns";
   }
 }
