@@ -3,7 +3,7 @@ import { coerceNumber, isNullish } from "./infer";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+()\-\s\d]{7,}$/;
-const MOJIBAKE_RE = /[ÃÂ][€-¿]|â€™|â€œ|â€|Ã©|Ã¨/;
+const MOJIBAKE_RE = /Ã.|Â.|â€™|â€œ|â€|Ã©|Ã¨/;
 
 function normalizeToken(s: string) {
   return s
