@@ -2,7 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home } from "lucide-react";
+import { Home } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -26,14 +26,9 @@ const NotFound = () => {
           doesn't exist or has been moved.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-2 sm:flex-row">
-          <Button asChild variant="outline" size="sm" className="h-9 gap-2">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" /> Back to landing
-            </Link>
-          </Button>
           <Button asChild size="sm" className="h-9 gap-2">
-            <Link to="/app/dashboard">
-              <Home className="h-4 w-4" /> Go to dashboard
+            <Link to="/">
+              <Home className="h-4 w-4" /> Back to workspace
             </Link>
           </Button>
         </div>
