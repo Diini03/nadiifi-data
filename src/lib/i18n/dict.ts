@@ -19,9 +19,50 @@ export const dict = {
     "action.openXogArag": "Open XogArag",
 
     // rail
-    "rail.workspace": "Workspace",
+    "rail.data": "Data",
+    "rail.clean": "Clean",
+    "rail.analyze": "Analyze",
+    "rail.dashboard": "Dashboard",
+    "rail.insights": "Insights",
+    "rail.export": "Export",
     "rail.history": "History",
     "rail.settings": "Settings",
+
+    // views
+    "view.data.title": "Dataset",
+    "view.data.subtitle": "Review columns, types, and raw values.",
+    "view.clean.title": "Cleaning Studio",
+    "view.clean.subtitle": "Review detected issues and apply fixes.",
+    "view.analyze.title": "Analyze",
+    "view.analyze.subtitle": "Auto-generated charts and key metrics.",
+    "view.dashboard.title": "Dashboard",
+    "view.dashboard.subtitle": "KPIs and visuals for at-a-glance reporting.",
+    "view.insights.title": "Insights",
+    "view.insights.subtitle": "Notable patterns detected in your dataset.",
+    "view.export.title": "Export",
+    "view.export.subtitle": "Download the cleaned dataset or continue.",
+
+    // kpi
+    "kpi.rows": "Rows",
+    "kpi.columns": "Columns",
+    "kpi.missing": "Missing cells",
+    "kpi.duplicates": "Duplicate rows",
+    "kpi.quality": "Quality score",
+    "kpi.memory": "Memory",
+    "kpi.numeric": "Numeric columns",
+    "kpi.categorical": "Categorical columns",
+
+    // insights
+    "insights.empty": "Load a dataset to see insights.",
+    "insights.correlation": "Strong correlation",
+    "insights.topCategory": "Dominant category",
+    "insights.outliers": "Outliers detected",
+    "insights.missingImpact": "High-missing column",
+    "insights.constant": "Non-informative column",
+    "insights.balanced": "Balanced distribution",
+
+    "empty.needDataset": "Upload a dataset from the Data tab to continue.",
+
 
     // empty state
     "empty.title": "Drop a messy dataset to begin",
@@ -117,9 +158,47 @@ export const dict = {
     "action.continueXogArag": "Muuji XogArag",
     "action.openXogArag": "Fur XogArag",
 
-    "rail.workspace": "Goobta",
+    "rail.data": "Xog",
+    "rail.clean": "Nadiifi",
+    "rail.analyze": "Falanqee",
+    "rail.dashboard": "Dashboard",
+    "rail.insights": "Aragti",
+    "rail.export": "Dhoofin",
     "rail.history": "Taariikhda",
     "rail.settings": "Habaynta",
+
+    "view.data.title": "Xogta",
+    "view.data.subtitle": "Eeg tiirarka, noocyada, iyo qiyamka asalka ah.",
+    "view.clean.title": "Goobta Nadiifinta",
+    "view.clean.subtitle": "Eeg dhibaatooyinka la helay oo codso hagaajin.",
+    "view.analyze.title": "Falanqayn",
+    "view.analyze.subtitle": "Jaantusyo iyo tiro tirakoob si toos ah loo sameeyay.",
+    "view.dashboard.title": "Dashboard",
+    "view.dashboard.subtitle": "Tirakoobyada muhiimka ah iyo muuqaalada.",
+    "view.insights.title": "Aragtiyada",
+    "view.insights.subtitle": "Waxyaabaha lagu ogaaday xogtaada.",
+    "view.export.title": "Dhoofinta",
+    "view.export.subtitle": "Soo deji xogta nadiifka ah ama sii wad.",
+
+    "kpi.rows": "Safaf",
+    "kpi.columns": "Tiirar",
+    "kpi.missing": "Unug maqan",
+    "kpi.duplicates": "Safaf isku mid",
+    "kpi.quality": "Tayada",
+    "kpi.memory": "Xasuusta",
+    "kpi.numeric": "Tiirar tiro",
+    "kpi.categorical": "Tiirar qaybeed",
+
+    "insights.empty": "Soo geli xog si aad u aragto aragtiyada.",
+    "insights.correlation": "Xiriir xoog leh",
+    "insights.topCategory": "Qaybta ugu badan",
+    "insights.outliers": "Qiimeyaal ka baxsan",
+    "insights.missingImpact": "Tiir badan oo maqan",
+    "insights.constant": "Tiir aan macluumaad lahayn",
+    "insights.balanced": "Qaybin isku dheelli tiran",
+
+    "empty.needDataset": "Soo geli xog tab-ka Xogta si aad u sii wado.",
+
 
     "empty.title": "Soo dhig fayl xog qas ah si aad u bilowdo",
     "empty.subtitle":
