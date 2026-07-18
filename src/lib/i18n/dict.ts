@@ -19,9 +19,50 @@ export const dict = {
     "action.openXogArag": "Open XogArag",
 
     // rail
-    "rail.workspace": "Workspace",
+    "rail.data": "Data",
+    "rail.clean": "Clean",
+    "rail.analyze": "Analyze",
+    "rail.dashboard": "Dashboard",
+    "rail.insights": "Insights",
+    "rail.export": "Export",
     "rail.history": "History",
     "rail.settings": "Settings",
+
+    // views
+    "view.data.title": "Dataset",
+    "view.data.subtitle": "Review columns, types, and raw values.",
+    "view.clean.title": "Cleaning Studio",
+    "view.clean.subtitle": "Review detected issues and apply fixes.",
+    "view.analyze.title": "Analyze",
+    "view.analyze.subtitle": "Auto-generated charts and key metrics.",
+    "view.dashboard.title": "Dashboard",
+    "view.dashboard.subtitle": "KPIs and visuals for at-a-glance reporting.",
+    "view.insights.title": "Insights",
+    "view.insights.subtitle": "Notable patterns detected in your dataset.",
+    "view.export.title": "Export",
+    "view.export.subtitle": "Download the cleaned dataset or continue.",
+
+    // kpi
+    "kpi.rows": "Rows",
+    "kpi.columns": "Columns",
+    "kpi.missing": "Missing cells",
+    "kpi.duplicates": "Duplicate rows",
+    "kpi.quality": "Quality score",
+    "kpi.memory": "Memory",
+    "kpi.numeric": "Numeric columns",
+    "kpi.categorical": "Categorical columns",
+
+    // insights
+    "insights.empty": "Load a dataset to see insights.",
+    "insights.correlation": "Strong correlation",
+    "insights.topCategory": "Dominant category",
+    "insights.outliers": "Outliers detected",
+    "insights.missingImpact": "High-missing column",
+    "insights.constant": "Non-informative column",
+    "insights.balanced": "Balanced distribution",
+
+    "empty.needDataset": "Upload a dataset from the Data tab to continue.",
+
 
     // empty state
     "empty.title": "Drop a messy dataset to begin",
