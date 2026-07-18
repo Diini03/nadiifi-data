@@ -10,7 +10,12 @@ import { ExportPanel } from "@/components/workspace/ExportPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
 import { HistoryView } from "@/components/workspace/HistoryView";
 import { SettingsView } from "@/components/workspace/SettingsView";
+import { KpiStrip } from "@/components/workspace/KpiStrip";
+import { InsightsView } from "@/components/workspace/InsightsView";
+import { ViewHeader } from "@/components/workspace/ViewHeader";
+import { AutoCharts } from "@/components/charts/AutoCharts";
 import { DatasetTable } from "@/components/app/DatasetTable";
+import { EmptyState } from "@/components/app/EmptyState";
 import { parseFile } from "@/lib/cleanlab/parse";
 import { profileDataset } from "@/lib/cleanlab/profile";
 import { detectIssues } from "@/lib/cleanlab/issues";
@@ -21,16 +26,9 @@ import { exportCSV } from "@/lib/cleanlab/exporters";
 import { buildSampleFile } from "@/lib/cleanlab/sample";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
-import { PanelRightOpen, Sheet as SheetIcon } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Upload as UploadIcon } from "lucide-react";
 
-type WorkspaceStage = "empty" | "inspecting" | "review" | "cleaned" | "export";
+type Stage = "empty" | "inspecting" | "ready" | "cleaned";
 
 interface CleanRecord {
   before: Dataset;
@@ -52,27 +50,25 @@ function countCellDiff(a: Dataset, b: Dataset): number {
 
 export default function Workspace() {
   const { t } = useI18n();
-  const [rail, setRail] = useState<RailView>("workspace");
-  const [stage, setStage] = useState<WorkspaceStage>("empty");
+  const [rail, setRail] = useState<RailView>("data");
+  const [stage, setStage] = useState<Stage>("empty");
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [lastAction, setLastAction] = useState<string | null>(null);
   const [cleaning, setCleaning] = useState(false);
   const [cleanResult, setCleanResult] = useState<CleanRecord | null>(null);
   const [undoStack, setUndoStack] = useState<Dataset[]>([]);
-  const [mobileIssuesOpen, setMobileIssuesOpen] = useState(false);
 
   const addDataset = useDatasetStore((s) => s.addDataset);
   const logExport = useDatasetStore((s) => s.logExport);
 
   const issues: Issue[] = useMemo(() => (dataset ? detectIssues(dataset) : []), [dataset]);
 
-  // Auto-select every actionable issue on load so "Clean Dataset" works out of the box.
   useEffect(() => {
-    if (stage === "review" && dataset) {
+    if (rail === "clean" && dataset) {
       setSelected(new Set(issues.filter((i) => i.op).map((i) => i.id)));
     }
-  }, [stage, dataset, issues]);
+  }, [rail, dataset, issues]);
 
   const handleFile = async (file: File) => {
     setStage("inspecting");
@@ -83,14 +79,13 @@ export default function Workspace() {
         setStage("empty");
         return;
       }
-      // slight delay so the scan animation is visible for tiny files
       await new Promise((r) => setTimeout(r, 350));
       const ds = profileDataset(file.name.replace(/\.[^.]+$/, ""), rows, file.size);
       setDataset(ds);
       setUndoStack([]);
       setLastAction(null);
       setCleanResult(null);
-      setStage("review");
+      setStage("ready");
       addDataset(ds).catch(() => {});
       toast.success(`${ds.rows.length.toLocaleString()} rows loaded`);
     } catch (err) {
@@ -138,7 +133,6 @@ export default function Workspace() {
     if (!dataset) return;
     exportCSV(dataset);
     logExport({ datasetId: dataset.id, datasetName: dataset.name, format: "csv" });
-    setStage("export");
   };
 
   const handleReset = () => {
@@ -148,6 +142,7 @@ export default function Workspace() {
     setCleanResult(null);
     setUndoStack([]);
     setLastAction(null);
+    setRail("data");
   };
 
   const handleUndo = () => {
@@ -155,8 +150,8 @@ export default function Workspace() {
     if (!last) return;
     setUndoStack((s) => s.slice(0, -1));
     setDataset(last);
-    setStage("review");
     setCleanResult(null);
+    setStage("ready");
     setLastAction("Reverted");
     toast("Reverted last cleaning step");
   };
@@ -165,95 +160,133 @@ export default function Workspace() {
     setSelected(new Set(issues.filter((i) => i.op).map((i) => i.id)));
   };
 
+  const needsDataset = (
+    <div className="p-6">
+      <EmptyState
+        icon={UploadIcon}
+        title={t("empty.needDataset")}
+        description=""
+        action={
+          <Button size="sm" onClick={() => setRail("data")}>
+            {t("action.upload")}
+          </Button>
+        }
+      />
+    </div>
+  );
+
   const renderCentral = () => {
     if (rail === "history") return <HistoryView />;
     if (rail === "settings") return <SettingsView />;
 
-    if (stage === "empty" || !dataset) {
-      return (
-        <EmptyDropzone
-          onFile={handleFile}
-          onSample={() => handleFile(buildSampleFile())}
-        />
-      );
-    }
     if (stage === "inspecting") return <InspectingOverlay />;
 
-    if (stage === "cleaned" && cleanResult) {
-      return (
-        <div className="space-y-6 p-6">
-          <CleanSummary
-            before={cleanResult.before}
-            after={cleanResult.after}
-            cellsEdited={cleanResult.cellsEdited}
-            onDismiss={() => setStage("export")}
+    if (rail === "data") {
+      if (!dataset || stage === "empty") {
+        return (
+          <EmptyDropzone
+            onFile={handleFile}
+            onSample={() => handleFile(buildSampleFile())}
           />
-          <div className="mx-auto max-w-6xl">
-            <DatasetTable dataset={dataset} />
-          </div>
-        </div>
-      );
-    }
-
-    if (stage === "export") {
+        );
+      }
       return (
-        <div className="space-y-6 p-6">
-          <ExportPanel dataset={dataset} />
-          <div className="mx-auto max-w-6xl">
+        <div className="flex min-h-full flex-col">
+          <ViewHeader title={t("view.data.title")} subtitle={t("view.data.subtitle")} />
+          <div className="space-y-4 p-6">
+            <KpiStrip dataset={dataset} />
             <DatasetTable dataset={dataset} />
           </div>
         </div>
       );
     }
 
-    // review
-    return (
-      <div className="space-y-4 p-4 sm:p-6">
-        <div className="flex items-center justify-between lg:hidden">
-          <Sheet open={mobileIssuesOpen} onOpenChange={setMobileIssuesOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                <PanelRightOpen className="h-3.5 w-3.5" />
-                {t("issues.title")}
-                {issues.length > 0 && (
-                  <span className="rounded-full bg-muted px-1.5 text-[10px] tabular-nums">
-                    {issues.length}
-                  </span>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[92vw] p-0 sm:w-[380px]">
-              <SheetHeader className="border-b p-4">
-                <SheetTitle className="flex items-center gap-2 text-[13px]">
-                  <SheetIcon className="h-4 w-4" /> {t("issues.title")}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="h-[calc(100dvh-56px)]">
-                <InspectionPanel
-                  issues={issues}
-                  selected={selected}
-                  onToggle={toggleIssue}
-                  onSelectAll={handleSelectAll}
-                  onClear={() => setSelected(new Set())}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
-          <span className="text-[11px] text-muted-foreground tabular-nums">
-            {selected.size} {t("issues.selected")}
-          </span>
+    if (!dataset) return needsDataset;
+
+    if (rail === "clean") {
+      if (stage === "cleaned" && cleanResult) {
+        return (
+          <div className="flex min-h-full flex-col">
+            <ViewHeader title={t("view.clean.title")} subtitle={t("view.clean.subtitle")} />
+            <div className="space-y-6 p-6">
+              <CleanSummary
+                before={cleanResult.before}
+                after={cleanResult.after}
+                cellsEdited={cleanResult.cellsEdited}
+                onDismiss={() => setStage("ready")}
+              />
+              <DatasetTable dataset={dataset} />
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="flex min-h-full flex-col">
+          <ViewHeader title={t("view.clean.title")} subtitle={t("view.clean.subtitle")} />
+          <div className="space-y-4 p-6">
+            <KpiStrip dataset={dataset} />
+            <DatasetTable dataset={dataset} />
+          </div>
         </div>
-        <DatasetTable dataset={dataset} />
-      </div>
-    );
+      );
+    }
+
+    if (rail === "analyze") {
+      return (
+        <div className="flex min-h-full flex-col">
+          <ViewHeader title={t("view.analyze.title")} subtitle={t("view.analyze.subtitle")} />
+          <div className="space-y-4 p-6">
+            <KpiStrip dataset={dataset} />
+            <AutoCharts dataset={dataset} />
+          </div>
+        </div>
+      );
+    }
+
+    if (rail === "dashboard") {
+      return (
+        <div className="flex min-h-full flex-col">
+          <ViewHeader title={t("view.dashboard.title")} subtitle={t("view.dashboard.subtitle")} />
+          <div className="space-y-4 p-6">
+            <KpiStrip dataset={dataset} />
+            <AutoCharts dataset={dataset} />
+          </div>
+        </div>
+      );
+    }
+
+    if (rail === "insights") {
+      return (
+        <div className="flex min-h-full flex-col">
+          <ViewHeader title={t("view.insights.title")} subtitle={t("view.insights.subtitle")} />
+          <div className="p-6">
+            <InsightsView dataset={dataset} />
+          </div>
+        </div>
+      );
+    }
+
+    if (rail === "export") {
+      return (
+        <div className="flex min-h-full flex-col">
+          <ViewHeader title={t("view.export.title")} subtitle={t("view.export.subtitle")} />
+          <div className="space-y-6 p-6">
+            <ExportPanel dataset={dataset} />
+            <DatasetTable dataset={dataset} />
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
-  const showRightPanel = rail === "workspace" && stage === "review" && dataset;
+  const showRightPanel = rail === "clean" && dataset && stage !== "cleaned";
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-background">
       <TopBar
-        dataset={rail === "workspace" ? dataset : null}
+        dataset={dataset}
         selectedCount={selected.size}
         onClean={runClean}
         onDownload={handleDownload}
@@ -277,7 +310,7 @@ export default function Workspace() {
           )}
         </main>
       </div>
-      <StatusBar dataset={rail === "workspace" ? dataset : null} lastAction={lastAction} />
+      <StatusBar dataset={dataset} lastAction={lastAction} />
     </div>
   );
 }
