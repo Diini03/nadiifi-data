@@ -158,9 +158,47 @@ export const dict = {
     "action.continueXogArag": "Muuji XogArag",
     "action.openXogArag": "Fur XogArag",
 
-    "rail.workspace": "Goobta",
+    "rail.data": "Xog",
+    "rail.clean": "Nadiifi",
+    "rail.analyze": "Falanqee",
+    "rail.dashboard": "Dashboard",
+    "rail.insights": "Aragti",
+    "rail.export": "Dhoofin",
     "rail.history": "Taariikhda",
     "rail.settings": "Habaynta",
+
+    "view.data.title": "Xogta",
+    "view.data.subtitle": "Eeg tiirarka, noocyada, iyo qiyamka asalka ah.",
+    "view.clean.title": "Goobta Nadiifinta",
+    "view.clean.subtitle": "Eeg dhibaatooyinka la helay oo codso hagaajin.",
+    "view.analyze.title": "Falanqayn",
+    "view.analyze.subtitle": "Jaantusyo iyo tiro tirakoob si toos ah loo sameeyay.",
+    "view.dashboard.title": "Dashboard",
+    "view.dashboard.subtitle": "Tirakoobyada muhiimka ah iyo muuqaalada.",
+    "view.insights.title": "Aragtiyada",
+    "view.insights.subtitle": "Waxyaabaha lagu ogaaday xogtaada.",
+    "view.export.title": "Dhoofinta",
+    "view.export.subtitle": "Soo deji xogta nadiifka ah ama sii wad.",
+
+    "kpi.rows": "Safaf",
+    "kpi.columns": "Tiirar",
+    "kpi.missing": "Unug maqan",
+    "kpi.duplicates": "Safaf isku mid",
+    "kpi.quality": "Tayada",
+    "kpi.memory": "Xasuusta",
+    "kpi.numeric": "Tiirar tiro",
+    "kpi.categorical": "Tiirar qaybeed",
+
+    "insights.empty": "Soo geli xog si aad u aragto aragtiyada.",
+    "insights.correlation": "Xiriir xoog leh",
+    "insights.topCategory": "Qaybta ugu badan",
+    "insights.outliers": "Qiimeyaal ka baxsan",
+    "insights.missingImpact": "Tiir badan oo maqan",
+    "insights.constant": "Tiir aan macluumaad lahayn",
+    "insights.balanced": "Qaybin isku dheelli tiran",
+
+    "empty.needDataset": "Soo geli xog tab-ka Xogta si aad u sii wado.",
+
 
     "empty.title": "Soo dhig fayl xog qas ah si aad u bilowdo",
     "empty.subtitle":
