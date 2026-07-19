@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      saved_datasets: {
+        Row: {
+          column_count: number
+          created_at: string
+          file_size: number
+          id: string
+          name: string
+          payload: Json
+          row_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_count?: number
+          created_at?: string
+          file_size?: number
+          id?: string
+          name: string
+          payload: Json
+          row_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_count?: number
+          created_at?: string
+          file_size?: number
+          id?: string
+          name?: string
+          payload?: Json
+          row_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -13,6 +13,7 @@ import { SettingsView } from "@/components/workspace/SettingsView";
 import { KpiStrip } from "@/components/workspace/KpiStrip";
 import { InsightsView } from "@/components/workspace/InsightsView";
 import { ViewHeader } from "@/components/workspace/ViewHeader";
+import { CloudLibrary } from "@/components/workspace/CloudLibrary";
 import { AutoCharts } from "@/components/charts/AutoCharts";
 import { DatasetTable } from "@/components/app/DatasetTable";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -25,6 +26,8 @@ import { useDatasetStore } from "@/store/useDatasetStore";
 import { exportCSV } from "@/lib/cleanlab/exporters";
 import { buildSampleFile } from "@/lib/cleanlab/sample";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { upsertSavedDataset } from "@/lib/cloud/datasets";
 import { Button } from "@/components/ui/button";
 import { Upload as UploadIcon } from "lucide-react";
 
@@ -50,6 +53,7 @@ function countCellDiff(a: Dataset, b: Dataset): number {
 
 export default function Workspace() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [rail, setRail] = useState<RailView>("data");
   const [stage, setStage] = useState<Stage>("empty");
   const [dataset, setDataset] = useState<Dataset | null>(null);
@@ -58,9 +62,22 @@ export default function Workspace() {
   const [cleaning, setCleaning] = useState(false);
   const [cleanResult, setCleanResult] = useState<CleanRecord | null>(null);
   const [undoStack, setUndoStack] = useState<Dataset[]>([]);
+  const [libraryVersion, setLibraryVersion] = useState(0);
 
   const addDataset = useDatasetStore((s) => s.addDataset);
   const logExport = useDatasetStore((s) => s.logExport);
+
+  const syncCloud = async (ds: Dataset) => {
+    if (!user) return;
+    try {
+      await upsertSavedDataset(user.id, ds);
+      setLibraryVersion((v) => v + 1);
+    } catch (err) {
+      console.error("cloud sync failed", err);
+      toast.error("Couldn't save to your cloud workspace.");
+    }
+  };
+
 
   const issues: Issue[] = useMemo(() => (dataset ? detectIssues(dataset) : []), [dataset]);
 
@@ -87,6 +104,7 @@ export default function Workspace() {
       setCleanResult(null);
       setStage("ready");
       addDataset(ds).catch(() => {});
+      syncCloud(ds);
       toast.success(`${ds.rows.length.toLocaleString()} rows loaded`);
     } catch (err) {
       console.error(err);
@@ -126,7 +144,20 @@ export default function Workspace() {
     setStage("cleaned");
     setSelected(new Set());
     setCleaning(false);
+    syncCloud(working);
     toast.success(`Applied ${applied.length} fixes`);
+  };
+
+  const openFromCloud = (ds: Dataset) => {
+    setDataset(ds);
+    setUndoStack([]);
+    setLastAction(null);
+    setCleanResult(null);
+    setStage("ready");
+    setSelected(new Set());
+    setRail("data");
+    addDataset(ds).catch(() => {});
+    toast.success(`Opened "${ds.name}"`);
   };
 
   const handleDownload = () => {
@@ -184,10 +215,19 @@ export default function Workspace() {
     if (rail === "data") {
       if (!dataset || stage === "empty") {
         return (
-          <EmptyDropzone
-            onFile={handleFile}
-            onSample={() => handleFile(buildSampleFile())}
-          />
+          <div className="flex min-h-full flex-col">
+            <EmptyDropzone
+              onFile={handleFile}
+              onSample={() => handleFile(buildSampleFile())}
+            />
+            <div className="mx-auto w-full max-w-3xl px-6 pb-10">
+              <CloudLibrary
+                currentId={dataset?.id ?? null}
+                onOpen={openFromCloud}
+                refreshToken={libraryVersion}
+              />
+            </div>
+          </div>
         );
       }
       return (
