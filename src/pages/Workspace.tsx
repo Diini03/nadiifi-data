@@ -13,6 +13,7 @@ import { SettingsView } from "@/components/workspace/SettingsView";
 import { KpiStrip } from "@/components/workspace/KpiStrip";
 import { InsightsView } from "@/components/workspace/InsightsView";
 import { ViewHeader } from "@/components/workspace/ViewHeader";
+import { CloudLibrary } from "@/components/workspace/CloudLibrary";
 import { AutoCharts } from "@/components/charts/AutoCharts";
 import { DatasetTable } from "@/components/app/DatasetTable";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -25,6 +26,8 @@ import { useDatasetStore } from "@/store/useDatasetStore";
 import { exportCSV } from "@/lib/cleanlab/exporters";
 import { buildSampleFile } from "@/lib/cleanlab/sample";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { upsertSavedDataset } from "@/lib/cloud/datasets";
 import { Button } from "@/components/ui/button";
 import { Upload as UploadIcon } from "lucide-react";
 
