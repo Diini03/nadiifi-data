@@ -53,6 +53,7 @@ function countCellDiff(a: Dataset, b: Dataset): number {
 
 export default function Workspace() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [rail, setRail] = useState<RailView>("data");
   const [stage, setStage] = useState<Stage>("empty");
   const [dataset, setDataset] = useState<Dataset | null>(null);
@@ -61,9 +62,22 @@ export default function Workspace() {
   const [cleaning, setCleaning] = useState(false);
   const [cleanResult, setCleanResult] = useState<CleanRecord | null>(null);
   const [undoStack, setUndoStack] = useState<Dataset[]>([]);
+  const [libraryVersion, setLibraryVersion] = useState(0);
 
   const addDataset = useDatasetStore((s) => s.addDataset);
   const logExport = useDatasetStore((s) => s.logExport);
+
+  const syncCloud = async (ds: Dataset) => {
+    if (!user) return;
+    try {
+      await upsertSavedDataset(user.id, ds);
+      setLibraryVersion((v) => v + 1);
+    } catch (err) {
+      console.error("cloud sync failed", err);
+      toast.error("Couldn't save to your cloud workspace.");
+    }
+  };
+
 
   const issues: Issue[] = useMemo(() => (dataset ? detectIssues(dataset) : []), [dataset]);
 
@@ -90,6 +104,7 @@ export default function Workspace() {
       setCleanResult(null);
       setStage("ready");
       addDataset(ds).catch(() => {});
+      syncCloud(ds);
       toast.success(`${ds.rows.length.toLocaleString()} rows loaded`);
     } catch (err) {
       console.error(err);
