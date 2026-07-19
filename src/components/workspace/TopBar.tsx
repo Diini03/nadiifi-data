@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
+import { UserMenu } from "./UserMenu";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cleaningScore } from "@/lib/cleanlab/issues";
 import type { Dataset } from "@/lib/cleanlab/types";
@@ -128,6 +129,7 @@ export function TopBar({
         <div className="mx-1 hidden h-5 w-px bg-border sm:block" />
         <LanguageSwitch />
         <ThemeToggle />
+        <UserMenu />
       </div>
     </header>
   );
