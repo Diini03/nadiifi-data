@@ -27,7 +27,7 @@ export async function loadSavedDataset(id: string): Promise<Dataset | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return (data?.payload as Dataset) ?? null;
+  return (data?.payload as unknown as Dataset) ?? null;
 }
 
 export async function upsertSavedDataset(userId: string, ds: Dataset): Promise<void> {
@@ -39,7 +39,8 @@ export async function upsertSavedDataset(userId: string, ds: Dataset): Promise<v
       file_size: ds.fileSize,
       row_count: ds.rows.length,
       column_count: ds.columns.length,
-      payload: ds as unknown as Record<string, unknown>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: ds as any,
     },
     { onConflict: "id" },
   );
