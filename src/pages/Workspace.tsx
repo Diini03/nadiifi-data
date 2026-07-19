@@ -144,7 +144,20 @@ export default function Workspace() {
     setStage("cleaned");
     setSelected(new Set());
     setCleaning(false);
+    syncCloud(working);
     toast.success(`Applied ${applied.length} fixes`);
+  };
+
+  const openFromCloud = (ds: Dataset) => {
+    setDataset(ds);
+    setUndoStack([]);
+    setLastAction(null);
+    setCleanResult(null);
+    setStage("ready");
+    setSelected(new Set());
+    setRail("data");
+    addDataset(ds).catch(() => {});
+    toast.success(`Opened "${ds.name}"`);
   };
 
   const handleDownload = () => {
@@ -202,10 +215,19 @@ export default function Workspace() {
     if (rail === "data") {
       if (!dataset || stage === "empty") {
         return (
-          <EmptyDropzone
-            onFile={handleFile}
-            onSample={() => handleFile(buildSampleFile())}
-          />
+          <div className="flex min-h-full flex-col">
+            <EmptyDropzone
+              onFile={handleFile}
+              onSample={() => handleFile(buildSampleFile())}
+            />
+            <div className="mx-auto w-full max-w-3xl px-6 pb-10">
+              <CloudLibrary
+                currentId={dataset?.id ?? null}
+                onOpen={openFromCloud}
+                refreshToken={libraryVersion}
+              />
+            </div>
+          </div>
         );
       }
       return (
