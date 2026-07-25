@@ -5,7 +5,7 @@
 
 NadiifiData is a focused, in-browser data-quality workspace. Upload a messy CSV or Excel file, review the issues automatically detected in it, apply cleaning fixes with one click, then download the cleaned dataset — or continue straight to [XogArag](https://xog-arag.vercel.app) for visualization and dashboards.
 
-**Live app:** [https://nadiifi-data.vercel.app/](https://nadiifi-data.vercel.app/)
+**Live app:** [https://nadiifi-data.vercel.app/](https://nadiifi-data.diinikahiye.online/)
 
 ---
 
