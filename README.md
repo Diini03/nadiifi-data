@@ -1,7 +1,7 @@
 
 # NadiifiData
 
-**Clean data. Better decisions.**:)
+**Clean data. Better decisions.**
 
 NadiifiData is a focused, in-browser data-quality workspace. Upload a messy CSV or Excel file, review the issues automatically detected in it, apply cleaning fixes with one click, then download the cleaned dataset — or continue straight to [XogArag](https://xog-arag.vercel.app) for visualization and dashboards.
 
