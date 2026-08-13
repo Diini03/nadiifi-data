@@ -129,7 +129,13 @@ export function TopBar({
         <div className="mx-1 hidden h-5 w-px bg-border sm:block" />
         <LanguageSwitch />
         <ThemeToggle />
-        <UserMenu />
+        {user ? (
+          <UserMenu />
+        ) : (
+          <Button asChild variant="outline" size="sm" className="h-8 text-[12.5px]">
+            <Link to="/auth">Sign in</Link>
+          </Button>
+        )}
       </div>
     </header>
   );
