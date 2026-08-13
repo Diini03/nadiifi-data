@@ -220,13 +220,15 @@ export default function Workspace() {
               onFile={handleFile}
               onSample={() => handleFile(buildSampleFile())}
             />
-            <div className="mx-auto w-full max-w-3xl px-6 pb-10">
-              <CloudLibrary
-                currentId={dataset?.id ?? null}
-                onOpen={openFromCloud}
-                refreshToken={libraryVersion}
-              />
-            </div>
+            {user && (
+              <div className="mx-auto w-full max-w-3xl px-6 pb-10">
+                <CloudLibrary
+                  currentId={dataset?.id ?? null}
+                  onOpen={openFromCloud}
+                  refreshToken={libraryVersion}
+                />
+              </div>
+            )}
           </div>
         );
       }
