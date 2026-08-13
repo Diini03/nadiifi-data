@@ -56,7 +56,7 @@ export function EmptyDropzone({ onFile, onSample }: Props) {
         <label className="mt-6 inline-flex">
           <input
             type="file"
-            accept=".csv,.tsv,.txt,.xlsx,.xls"
+            accept=".csv,.tsv,.txt,.xlsx,.xls,.json,.ndjson"
             className="sr-only"
             onChange={handlePick}
             aria-label={t("empty.cta")}
