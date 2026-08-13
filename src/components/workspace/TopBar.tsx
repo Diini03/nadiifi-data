@@ -1,4 +1,6 @@
 import { Sparkles, Download, RotateCcw, Undo2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitch } from "./LanguageSwitch";
