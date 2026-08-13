@@ -1,4 +1,6 @@
 import { Sparkles, Download, RotateCcw, Undo2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitch } from "./LanguageSwitch";
@@ -31,6 +33,7 @@ export function TopBar({
   cleaning,
 }: Props) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const score = dataset ? cleaningScore(dataset) : 0;
   const scoreTone =
     score >= 85 ? "text-success" : score >= 60 ? "text-warning" : "text-destructive";
@@ -129,7 +132,13 @@ export function TopBar({
         <div className="mx-1 hidden h-5 w-px bg-border sm:block" />
         <LanguageSwitch />
         <ThemeToggle />
-        <UserMenu />
+        {user ? (
+          <UserMenu />
+        ) : (
+          <Button asChild variant="outline" size="sm" className="h-8 text-[12.5px]">
+            <Link to="/auth">Sign in</Link>
+          </Button>
+        )}
       </div>
     </header>
   );
