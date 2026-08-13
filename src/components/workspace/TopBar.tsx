@@ -33,6 +33,7 @@ export function TopBar({
   cleaning,
 }: Props) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const score = dataset ? cleaningScore(dataset) : 0;
   const scoreTone =
     score >= 85 ? "text-success" : score >= 60 ? "text-warning" : "text-destructive";
