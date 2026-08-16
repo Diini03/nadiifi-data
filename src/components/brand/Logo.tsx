@@ -8,78 +8,41 @@ interface LogoProps {
 }
 
 /**
- * NadiifiData brand mark — a 3x3 grid of rounded squares.
- * Left/middle columns are outlined; the right column is filled with the
- * primary blue and accented by a small emerald sparkle.
+ * Nadiifi brand mark — three broken/uneven strokes on the left resolving into
+ * one clean solid stroke on the right: messy data becoming clean data.
+ * Set inside a charcoal squircle so it works as favicon and app icon.
  */
-export function Logo({
-  className,
-  size = 22,
-  withWordmark = false,
-  wordmarkClassName,
-}: LogoProps) {
-  const cells = [
-    { x: 2, y: 2, filled: false },
-    { x: 11, y: 2, filled: false },
-    { x: 20, y: 2, filled: true },
-    { x: 2, y: 11, filled: false },
-    { x: 11, y: 11, filled: false },
-    { x: 20, y: 11, filled: true },
-    { x: 2, y: 20, filled: false },
-    { x: 11, y: 20, filled: false },
-    { x: 20, y: 20, filled: true },
-  ];
-
+export function Logo({ className, size = 26, withWordmark = false, wordmarkClassName }: LogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
+    <span className={cn("inline-flex items-center gap-2.5", className)}>
       <svg
         width={size}
         height={size}
-        viewBox="0 0 30 30"
+        viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
+        role="img"
+        aria-label="Nadiifi"
         className="shrink-0"
       >
-        {cells.map((c, i) =>
-          c.filled ? (
-            <rect
-              key={i}
-              x={c.x}
-              y={c.y}
-              width="7"
-              height="7"
-              rx="1.6"
-              fill="hsl(var(--primary))"
-            />
-          ) : (
-            <rect
-              key={i}
-              x={c.x + 0.6}
-              y={c.y + 0.6}
-              width="5.8"
-              height="5.8"
-              rx="1.3"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              className="text-muted-foreground/60"
-            />
-          )
-        )}
-        {/* Sparkle accent */}
-        <path
-          d="M27.5 6.5 L28.4 8.1 L30 9 L28.4 9.9 L27.5 11.5 L26.6 9.9 L25 9 L26.6 8.1 Z"
-          fill="hsl(158 64% 42%)"
-        />
+        <rect width="32" height="32" rx="9" fill="hsl(var(--foreground))" />
+        {/* messy strokes */}
+        <rect x="7" y="9" width="7" height="2.4" rx="1.2" fill="hsl(var(--background))" opacity="0.45" />
+        <rect x="7" y="14.8" width="4.5" height="2.4" rx="1.2" fill="hsl(var(--background))" opacity="0.45" />
+        <rect x="7" y="20.6" width="8.5" height="2.4" rx="1.2" fill="hsl(var(--background))" opacity="0.45" />
+        {/* clean resolved stroke */}
+        <rect x="18.5" y="7.5" width="3" height="17" rx="1.5" fill="hsl(var(--primary))" />
+        {/* clarity dot */}
+        <circle cx="24.6" cy="9.2" r="1.9" fill="hsl(var(--cyan))" />
       </svg>
       {withWordmark && (
         <span
           className={cn(
-            "text-[15px] font-semibold tracking-[-0.01em] leading-none",
-            wordmarkClassName
+            "font-display text-[16px] font-semibold leading-none tracking-[-0.03em]",
+            wordmarkClassName,
           )}
         >
-          Nadiifi<span className="text-primary">Data</span>
+          Nadiifi
         </span>
       )}
     </span>

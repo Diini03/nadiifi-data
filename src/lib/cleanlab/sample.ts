@@ -1,22 +1,31 @@
 import type { CellValue } from "@/lib/cleanlab/types";
 
 /**
- * Deliberately messy sample dataset with a bit of every issue the
- * inspection engine looks for: duplicates, missing values, whitespace,
- * inconsistent casing/spelling, invalid emails, numeric-stored-as-text,
- * empty rows, an empty column, and one duplicate column.
+ * Realistic customer sales dataset, deliberately messy: duplicates, missing
+ * values, whitespace, inconsistent capitalisation, invalid values, numbers
+ * stored as text, an empty row and an empty column.
  */
 export const SAMPLE_ROWS: Record<string, CellValue>[] = [
-  { id: 1, id_copy: 1, name: "Ayaan Farah",   country: "Somalia",       age: "24", email: "ayaan@example.com",     phone: "+252 61 1234567", signup_date: "2024-01-15", notes: "" },
-  { id: 2, id_copy: 2, name: "Mohamed Ali ",  country: "somalia",       age: "31", email: "mo.ali@example",         phone: "+252611234568",   signup_date: "2024/02/03", notes: null },
-  { id: 3, id_copy: 3, name: "  Sagal H.",    country: "SOMALIA",       age: "29", email: "SAGAL@Example.com",      phone: "0611234569",      signup_date: "2024-02-19", notes: "VIP" },
-  { id: 4, id_copy: 4, name: "Ayaan Farah",   country: "Somalia",       age: "24", email: "ayaan@example.com",     phone: "+252 61 1234567", signup_date: "2024-01-15", notes: "" },
-  { id: 5, id_copy: 5, name: "John Smith",    country: "USA",           age: "45", email: "john@smith.com",         phone: "+1 202-555-0142", signup_date: "2024-03-11", notes: "" },
-  { id: 6, id_copy: 6, name: "Jane Doe",      country: "United States", age: "37", email: "jane@doe.com",           phone: "+1 202 555 0100", signup_date: "2024-03-12", notes: "" },
-  { id: 7, id_copy: 7, name: "Ahmed K.",      country: "U.S.A",         age: "52", email: "ahmed@k",                phone: "not-a-phone",     signup_date: "invalid",    notes: "" },
-  { id: 8, id_copy: 8, name: "Maryan  Yusuf", country: "Kenya",         age: "N/A", email: "maryan@example.com",   phone: "+254712345678",   signup_date: "2024-04-01", notes: "" },
-  { id: 9, id_copy: 9, name: "",              country: "",              age: "",   email: "",                       phone: "",                signup_date: "",            notes: "" },
-  { id: 10, id_copy: 10, name: "Deeqa A.",    country: "Kenya",         age: "27", email: "deeqa@example.com",     phone: "+254712345679",   signup_date: "2024-04-14", notes: "" },
+  { "Order Date": "2024-01-15", Customer: "Ayaan Farah",    Region: "Somalia",       Product: "Laptop",   Quantity: "2",  Price: "899.00",  Revenue: "1798.00", Notes: "" },
+  { "Order Date": "2024/02/03", Customer: "Mohamed Ali ",   Region: "somalia",       Product: "Monitor",  Quantity: "1",  Price: "219.50",  Revenue: "219.50",  Notes: "" },
+  { "Order Date": "2024-02-19", Customer: "  Sagal Hersi",  Region: " SOMALIA ",     Product: "laptop",   Quantity: "3",  Price: "899.00",  Revenue: "",        Notes: "" },
+  { "Order Date": "2024-01-15", Customer: "Ayaan Farah",    Region: "Somalia",       Product: "Laptop",   Quantity: "2",  Price: "899.00",  Revenue: "1798.00", Notes: "" },
+  { "Order Date": "2024-03-11", Customer: "John Smith",     Region: "USA",           Product: "Keyboard", Quantity: "5",  Price: "49.99",   Revenue: "249.95",  Notes: "" },
+  { "Order Date": "2024-03-12", Customer: "Jane Doe",       Region: "United States", Product: "Monitor",  Quantity: "",   Price: "219.50",  Revenue: "",        Notes: "" },
+  { "Order Date": "not a date", Customer: "Ahmed Kahin",    Region: "U.S.A",         Product: "MONITOR",  Quantity: "1",  Price: "219.50",  Revenue: "219.50",  Notes: "" },
+  { "Order Date": "2024-04-01", Customer: "Maryan  Yusuf",  Region: "Kenya",         Product: "Desk",     Quantity: "1",  Price: "N/A",     Revenue: "",        Notes: "" },
+  { "Order Date": "",           Customer: "",               Region: "",              Product: "",         Quantity: "",   Price: "",        Revenue: "",        Notes: "" },
+  { "Order Date": "2024-04-14", Customer: "Deeqa Abdi",     Region: "kenya",         Product: "Chair",    Quantity: "4",  Price: "129.00",  Revenue: "516.00",  Notes: "" },
+  { "Order Date": "2024-04-18", Customer: "Deeqa Abdi",     Region: "Kenya",         Product: "chair ",   Quantity: "2",  Price: "129.00",  Revenue: "258.00",  Notes: "" },
+  { "Order Date": "2024-05-02", Customer: "Liban Warsame",  Region: "Somalia",       Product: "Laptop",   Quantity: "1",  Price: "899.00",  Revenue: "899.00",  Notes: "" },
+  { "Order Date": "2024-05-09", Customer: "Hodan Nur",      Region: "Djibouti",      Product: "Keyboard", Quantity: "10", Price: "49.99",   Revenue: "499.90",  Notes: "" },
+  { "Order Date": "2024-05-09", Customer: "Hodan Nur",      Region: "Djibouti",      Product: "Keyboard", Quantity: "10", Price: "49.99",   Revenue: "499.90",  Notes: "" },
+  { "Order Date": "2024-06-01", Customer: "Sagal Hersi",    Region: "SOMALIA",       Product: "Desk",     Quantity: "1",  Price: "349.00",  Revenue: "349.00",  Notes: "" },
+  { "Order Date": "2024-06-14", Customer: "John Smith",     Region: "usa",           Product: "Monitor",  Quantity: "2",  Price: "219.50",  Revenue: "439.00",  Notes: "" },
+  { "Order Date": "2024-06-22", Customer: "Amina Osman",    Region: "Kenya",         Product: "Laptop",   Quantity: "1",  Price: "899.00",  Revenue: "899.00",  Notes: "" },
+  { "Order Date": "2024-07-03", Customer: "Amina Osman",    Region: "Kenya ",        Product: "Chair",    Quantity: "6",  Price: "129.00",  Revenue: "774.00",  Notes: "" },
+  { "Order Date": "2024-07-19", Customer: "Yasin Abdulle",  Region: "Djibouti",      Product: "Desk",     Quantity: "1",  Price: "349.00",  Revenue: "349.00",  Notes: "" },
+  { "Order Date": "2024-08-05", Customer: "Ifrah Said",     Region: "Somalia",       Product: "Monitor",  Quantity: "3",  Price: "219.50",  Revenue: "9999999", Notes: "" },
 ];
 
 export function buildSampleFile(): File {
@@ -34,5 +43,5 @@ export function buildSampleFile(): File {
         .join(","),
     ),
   ].join("\n");
-  return new File([csv], "sample-messy-customers.csv", { type: "text/csv" });
+  return new File([csv], "sample-sales.csv", { type: "text/csv" });
 }
