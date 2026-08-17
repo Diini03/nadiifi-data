@@ -9,8 +9,7 @@ import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 import { AuthProvider, useAuth } from "@/lib/auth/AuthProvider";
 import { Loader2 } from "lucide-react";
 
-const Landing = lazy(() => import("./pages/Landing"));
-const Workspace = lazy(() => import("./pages/Workspace"));
+const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
