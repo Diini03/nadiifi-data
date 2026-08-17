@@ -200,7 +200,7 @@ export default function Home() {
               onDismiss={() => setStage("ready")}
             />
           ) : (
-            <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
               <DatasetTable dataset={dataset} />
               <InspectionPanel
                 issues={issues}
