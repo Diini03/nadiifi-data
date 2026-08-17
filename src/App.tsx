@@ -40,9 +40,9 @@ const App = () => (
             <AuthProvider>
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
-                  <Route path="/" element={<Landing />} />
+                  <Route path="/" element={<Home />} />
                   <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/app" element={<Workspace />} />
+                  <Route path="/app" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
