@@ -31,7 +31,7 @@ export function InspectionPanel({ issues, selected, onToggle, onSelectAll, onCle
 
   return (
     <aside
-      className="hidden w-[340px] shrink-0 flex-col border-l border-border/70 bg-sidebar/40 lg:flex"
+      className="hidden w-[340px] shrink-0 flex-col self-start rounded-md border border-border/70 bg-sidebar/40 max-h-[70vh] overflow-auto lg:flex"
       aria-label="Data quality inspection"
     >
       <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
