@@ -135,7 +135,10 @@ export default function Home() {
     setStage("cleaned");
     setSelected(new Set());
     syncCloud(working);
-    toast.success(`Applied ${applied.length} fixes`);
+    toast.success(`Applied ${applied.length} fixes`, {
+      description: "Your data is clean — open Visualize to chart it.",
+      action: { label: "Visualize", onClick: () => setStep("visualize") },
+    });
   };
 
   const handleUndo = () => {
@@ -198,7 +201,9 @@ export default function Home() {
               after={cleanResult.after}
               cellsEdited={cleanResult.cellsEdited}
               onDismiss={() => setStage("ready")}
+              onVisualize={() => setStep("visualize")}
             />
+
           ) : (
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
               <DatasetTable dataset={dataset} />
@@ -246,8 +251,14 @@ export default function Home() {
       <Navbar onStart={scrollToTool} />
 
       {dataset && (
-        <WorkflowNav active={step} onChange={setStep} disabled={stage === "inspecting"} />
+        <WorkflowNav
+          active={step}
+          onChange={setStep}
+          disabled={stage === "inspecting"}
+          suggested={stage === "cleaned" && step !== "visualize" ? "visualize" : null}
+        />
       )}
+
 
       <main className="flex-1">
         {!dataset && (
