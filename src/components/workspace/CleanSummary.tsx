@@ -1,4 +1,4 @@
-import { CheckCircle2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { CheckCircle2, TrendingUp, TrendingDown, Minus, BarChart3, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { Dataset } from "@/lib/cleanlab/types";
@@ -9,9 +9,11 @@ interface Props {
   after: Dataset;
   cellsEdited: number;
   onDismiss: () => void;
+  onVisualize?: () => void;
 }
 
-export function CleanSummary({ before, after, cellsEdited, onDismiss }: Props) {
+
+export function CleanSummary({ before, after, cellsEdited, onDismiss, onVisualize }: Props) {
   const { t } = useI18n();
   const scoreBefore = cleaningScore(before);
   const scoreAfter = cleaningScore(after);
@@ -77,11 +79,26 @@ export function CleanSummary({ before, after, cellsEdited, onDismiss }: Props) {
         })}
       </div>
 
-      <div className="mt-6 flex justify-end">
-        <Button onClick={onDismiss} className="h-9 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
+      {onVisualize && (
+        <div className="mt-6 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary-soft/40 p-3">
+          <BarChart3 className="h-4 w-4 shrink-0 text-primary" />
+          <p className="text-[12.5px] text-foreground">
+            Next step: open <span className="font-semibold">Visualize</span> to chart your clean data.
+          </p>
+        </div>
+      )}
+
+      <div className="mt-6 flex flex-wrap justify-end gap-2">
+        <Button variant="outline" onClick={onDismiss} className="h-9 rounded-lg">
           {t("clean.dismiss")}
         </Button>
+        {onVisualize && (
+          <Button onClick={onVisualize} className="h-9 rounded-lg shadow-glow">
+            Visualize data <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
+
     </section>
   );
 }

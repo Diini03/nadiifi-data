@@ -15,9 +15,11 @@ interface Props {
   active: Step;
   onChange: (s: Step) => void;
   disabled?: boolean;
+  /** Step to nudge the user towards next (pulsing ring). */
+  suggested?: Step | null;
 }
 
-export function WorkflowNav({ active, onChange, disabled }: Props) {
+export function WorkflowNav({ active, onChange, disabled, suggested }: Props) {
   const activeIndex = STEPS.findIndex((s) => s.id === active);
 
   return (
@@ -30,6 +32,8 @@ export function WorkflowNav({ active, onChange, disabled }: Props) {
           const Icon = s.icon;
           const isActive = s.id === active;
           const done = i < activeIndex;
+          const hint = !isActive && suggested === s.id;
+
           return (
             <button
               key={s.id}
@@ -38,18 +42,26 @@ export function WorkflowNav({ active, onChange, disabled }: Props) {
               onClick={() => onChange(s.id)}
               aria-current={isActive ? "step" : undefined}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
+                "relative inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-glow"
                   : done
                     ? "text-foreground hover:bg-muted"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                hint &&
+                  "animate-pulse text-foreground ring-2 ring-primary/60 ring-offset-2 ring-offset-background",
                 disabled && "pointer-events-none opacity-40",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
               {s.label}
+              {hint && (
+                <span className="ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                  next
+                </span>
+              )}
             </button>
+
           );
         })}
       </div>
