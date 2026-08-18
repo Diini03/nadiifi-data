@@ -356,9 +356,44 @@ export default function Home() {
                 </ul>
               </div>
             </section>
+
+            <section id="resources" className="border-t border-border/70 bg-muted/30 py-12">
+              <div className="mx-auto max-w-5xl px-4">
+                <h2 className="font-display text-xl font-semibold tracking-[-0.02em]">Resources</h2>
+                <p className="mt-1 text-[13px] text-muted-foreground">
+                  Short guides for getting the most out of Nadiifi.
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {RESOURCES.map((res) => (
+                    <article
+                      key={res.title}
+                      className="rounded-xl border border-border/70 bg-card p-4"
+                    >
+                      <span className="text-[10.5px] font-semibold uppercase tracking-wider text-primary">
+                        {res.tag}
+                      </span>
+                      <h3 className="mt-2 font-display text-[15px] font-semibold">{res.title}</h3>
+                      <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                        {res.body}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
           </>
         )}
       </main>
+
+      {!dataset && (
+        <footer className="border-t border-border/70 py-6">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 text-[12px] text-muted-foreground">
+            <span>© {new Date().getFullYear()} Nadiifi</span>
+            <span className="ml-auto">Clean data. See clearly.</span>
+          </div>
+        </footer>
+      )}
+
 
       <StatusBar dataset={dataset} lastAction={lastAction} />
     </div>
