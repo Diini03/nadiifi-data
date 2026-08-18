@@ -54,6 +54,40 @@ const PROMISES = [
   { icon: Gauge, title: "Analysis-ready output", body: "Download clean CSV, Excel or JSON that drops straight into your next tool." },
 ];
 
+const RESOURCES = [
+  {
+    tag: "Guide",
+    title: "Prepare your file",
+    body: "One header row, one record per row, no merged cells. Nadiifi reads CSV, TSV, Excel, JSON and NDJSON.",
+  },
+  {
+    tag: "Workflow",
+    title: "Data → Clean → Visualize",
+    body: "Profile the file, review the flagged issues, apply the fixes you agree with, then chart the result.",
+  },
+  {
+    tag: "Reference",
+    title: "How the health score works",
+    body: "A weighted mix of missing values, duplicate rows, type consistency and outliers, recomputed after every fix.",
+  },
+  {
+    tag: "Privacy",
+    title: "Where your data lives",
+    body: "Parsing and cleaning happen in your browser. Sign in only if you want datasets saved to your workspace.",
+  },
+  {
+    tag: "Export",
+    title: "Getting data out",
+    body: "Download clean CSV, Excel or JSON — column names and types stay consistent with what you saw on screen.",
+  },
+  {
+    tag: "Tips",
+    title: "Start with the sample",
+    body: "The retail sales sample includes duplicates, blanks and outliers so you can see every detector in action.",
+  },
+];
+
+
 export default function Home() {
   const { user } = useAuth();
   const toolRef = useRef<HTMLDivElement>(null);
