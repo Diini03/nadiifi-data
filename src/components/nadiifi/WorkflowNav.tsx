@@ -15,9 +15,11 @@ interface Props {
   active: Step;
   onChange: (s: Step) => void;
   disabled?: boolean;
+  /** Step to nudge the user towards next (pulsing ring). */
+  suggested?: Step | null;
 }
 
-export function WorkflowNav({ active, onChange, disabled }: Props) {
+export function WorkflowNav({ active, onChange, disabled, suggested }: Props) {
   const activeIndex = STEPS.findIndex((s) => s.id === active);
 
   return (
@@ -30,6 +32,8 @@ export function WorkflowNav({ active, onChange, disabled }: Props) {
           const Icon = s.icon;
           const isActive = s.id === active;
           const done = i < activeIndex;
+          const hint = !isActive && suggested === s.id;
+
           return (
             <button
               key={s.id}
