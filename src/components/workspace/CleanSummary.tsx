@@ -1,4 +1,4 @@
-import { CheckCircle2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { CheckCircle2, TrendingUp, TrendingDown, Minus, BarChart3, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { Dataset } from "@/lib/cleanlab/types";
@@ -9,7 +9,9 @@ interface Props {
   after: Dataset;
   cellsEdited: number;
   onDismiss: () => void;
+  onVisualize?: () => void;
 }
+
 
 export function CleanSummary({ before, after, cellsEdited, onDismiss }: Props) {
   const { t } = useI18n();
