@@ -46,10 +46,15 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/app" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <ScrollToTopButton />
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
