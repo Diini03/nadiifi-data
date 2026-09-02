@@ -43,6 +43,7 @@ const App = () => (
           <Sonner position="top-right" />
           <BrowserRouter>
             <AuthProvider>
+              <ScrollRestoration />
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Home />} />
