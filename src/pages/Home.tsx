@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { SiteFooter } from "@/components/nadiifi/SiteFooter";
 import { Undo2, Download, RotateCcw, Sparkles, ShieldCheck, Zap, Gauge } from "lucide-react";
 import { Navbar } from "@/components/nadiifi/Navbar";
 import { WorkflowNav, type Step } from "@/components/nadiifi/WorkflowNav";
@@ -52,39 +54,6 @@ const PROMISES = [
   { icon: ShieldCheck, title: "Private by design", body: "Your file never leaves the browser. No uploads, no servers, no waiting." },
   { icon: Zap, title: "Instant profiling", body: "Types, missing values, duplicates and outliers detected the moment you drop a file." },
   { icon: Gauge, title: "Analysis-ready output", body: "Download clean CSV, Excel or JSON that drops straight into your next tool." },
-];
-
-const RESOURCES = [
-  {
-    tag: "Guide",
-    title: "Prepare your file",
-    body: "One header row, one record per row, no merged cells. Nadiifi reads CSV, TSV, Excel, JSON and NDJSON.",
-  },
-  {
-    tag: "Workflow",
-    title: "Data → Clean → Visualize",
-    body: "Profile the file, review the flagged issues, apply the fixes you agree with, then chart the result.",
-  },
-  {
-    tag: "Reference",
-    title: "How the health score works",
-    body: "A weighted mix of missing values, duplicate rows, type consistency and outliers, recomputed after every fix.",
-  },
-  {
-    tag: "Privacy",
-    title: "Where your data lives",
-    body: "Parsing and cleaning happen in your browser. Sign in only if you want datasets saved to your workspace.",
-  },
-  {
-    tag: "Export",
-    title: "Getting data out",
-    body: "Download clean CSV, Excel or JSON — column names and types stay consistent with what you saw on screen.",
-  },
-  {
-    tag: "Tips",
-    title: "Start with the sample",
-    body: "The retail sales sample includes duplicates, blanks and outliers so you can see every detector in action.",
-  },
 ];
 
 
@@ -393,15 +362,20 @@ export default function Home() {
 
             <section id="resources" className="border-t border-border/70 bg-muted/30 py-12">
               <div className="mx-auto max-w-5xl px-4">
-                <h2 className="font-display text-xl font-semibold tracking-[-0.02em]">Resources</h2>
+                <h2 className="font-display text-xl font-semibold tracking-[-0.02em]">Go deeper</h2>
                 <p className="mt-1 text-[13px] text-muted-foreground">
-                  Short guides for getting the most out of Nadiifi.
+                  Dedicated pages for the workflow, the guides and the thinking behind Nadiifi.
                 </p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {RESOURCES.map((res) => (
-                    <article
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  {[
+                    { to: "/how-it-works", tag: "Workflow", title: "How it works", body: "The five stages a dataset moves through, and what each one changes." },
+                    { to: "/resources", tag: "Guides", title: "Resources", body: "How to shape a file, what the detectors look for and a plain-English glossary." },
+                    { to: "/about", tag: "Story", title: "About Nadiifi", body: "Why the tool runs in your browser and what it refuses to do with your data." },
+                  ].map((res) => (
+                    <Link
                       key={res.title}
-                      className="rounded-xl border border-border/70 bg-card p-4"
+                      to={res.to}
+                      className="rounded-xl border border-border/70 bg-card p-4 transition-colors hover:border-primary/50"
                     >
                       <span className="text-[10.5px] font-semibold uppercase tracking-wider text-primary">
                         {res.tag}
@@ -410,7 +384,7 @@ export default function Home() {
                       <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                         {res.body}
                       </p>
-                    </article>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -419,14 +393,7 @@ export default function Home() {
         )}
       </main>
 
-      {!dataset && (
-        <footer className="border-t border-border/70 py-6">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 text-[12px] text-muted-foreground">
-            <span>© {new Date().getFullYear()} Nadiifi</span>
-            <span className="ml-auto">Clean data. See clearly.</span>
-          </div>
-        </footer>
-      )}
+      {!dataset && <SiteFooter />}
 
 
       <StatusBar dataset={dataset} lastAction={lastAction} />

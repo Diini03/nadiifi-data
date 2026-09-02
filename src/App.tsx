@@ -8,9 +8,14 @@ import { Suspense, lazy } from "react";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 import { AuthProvider, useAuth } from "@/lib/auth/AuthProvider";
 import { Loader2 } from "lucide-react";
+import { ScrollRestoration, ScrollToTopButton } from "@/components/nadiifi/ScrollToTop";
 
 const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/Auth"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Resources = lazy(() => import("./pages/Resources"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -38,14 +43,20 @@ const App = () => (
           <Sonner position="top-right" />
           <BrowserRouter>
             <AuthProvider>
+              <ScrollRestoration />
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/app" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <ScrollToTopButton />
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
