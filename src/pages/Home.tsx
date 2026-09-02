@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { SiteFooter } from "@/components/nadiifi/SiteFooter";
 import { Undo2, Download, RotateCcw, Sparkles, ShieldCheck, Zap, Gauge } from "lucide-react";
 import { Navbar } from "@/components/nadiifi/Navbar";
 import { WorkflowNav, type Step } from "@/components/nadiifi/WorkflowNav";
