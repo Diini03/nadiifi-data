@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, Github } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
@@ -7,34 +7,45 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { UserMenu } from "@/components/nadiifi/UserMenu";
+import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "#tool", label: "Clean" },
-  { href: "#how", label: "How it works" },
-  { href: "#detects", label: "Features" },
-  { href: "#resources", label: "Resources" },
+  { to: "/how-it-works", label: "How it works" },
+  { to: "/resources", label: "Resources" },
+  { to: "/pricing", label: "Pricing" },
+  { to: "/about", label: "About" },
 ];
 
 export function Navbar({ onStart }: { onStart: () => void }) {
   const { user } = useAuth();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  const handleStart = () => {
+    if (pathname === "/") onStart();
+    else navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
-        <a href="#top" className="flex items-center" aria-label="Nadiifi home">
+        <Link to="/" className="flex items-center" aria-label="Nadiifi home">
           <Logo size={26} withWordmark />
-        </a>
+        </Link>
 
         <nav className="mx-auto hidden items-center gap-1 md:flex" aria-label="Main">
           {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            <Link
+              key={l.to}
+              to={l.to}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors hover:bg-muted hover:text-foreground",
+                pathname === l.to ? "bg-muted text-foreground" : "text-muted-foreground",
+              )}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
           <a
             href="https://github.com/Diini03/nadiifi-data"
@@ -57,7 +68,7 @@ export function Navbar({ onStart }: { onStart: () => void }) {
           )}
           <Button
             size="sm"
-            onClick={onStart}
+            onClick={handleStart}
             className="h-8 rounded-md text-[13px] font-semibold shadow-glow"
           >
             Start cleaning
@@ -72,14 +83,14 @@ export function Navbar({ onStart }: { onStart: () => void }) {
             <SheetContent side="top" className="rounded-b-xl px-4 pb-6 pt-12">
               <nav className="flex flex-col gap-1" aria-label="Mobile">
                 {LINKS.map((l) => (
-                  <a
-                    key={l.href}
-                    href={l.href}
+                  <Link
+                    key={l.to}
+                    to={l.to}
                     onClick={() => setOpen(false)}
                     className="rounded-md px-3 py-3 text-[15px] font-medium hover:bg-muted"
                   >
                     {l.label}
-                  </a>
+                  </Link>
                 ))}
                 <a
                   href="https://github.com/Diini03/nadiifi-data"
