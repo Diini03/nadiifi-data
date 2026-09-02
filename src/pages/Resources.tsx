@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/nadiifi/Navbar";
+import { SiteFooter } from "@/components/nadiifi/SiteFooter";
 import { Button } from "@/components/ui/button";
 
 const GUIDES = [
@@ -113,12 +114,7 @@ export default function Resources() {
         </section>
       </main>
 
-      <footer className="border-t border-border/70 py-6">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 text-[12px] text-muted-foreground">
-          <span>© {new Date().getFullYear()} Nadiifi</span>
-          <Link to="/how-it-works" className="ml-auto hover:text-foreground">How it works</Link>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
