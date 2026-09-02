@@ -8,6 +8,7 @@ import { Suspense, lazy } from "react";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 import { AuthProvider, useAuth } from "@/lib/auth/AuthProvider";
 import { Loader2 } from "lucide-react";
+import { ScrollRestoration, ScrollToTopButton } from "@/components/nadiifi/ScrollToTop";
 
 const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/Auth"));
