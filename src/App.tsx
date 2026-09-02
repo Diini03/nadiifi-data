@@ -11,6 +11,10 @@ import { Loader2 } from "lucide-react";
 
 const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/Auth"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Resources = lazy(() => import("./pages/Resources"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
