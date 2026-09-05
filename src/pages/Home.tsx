@@ -236,12 +236,20 @@ export default function Home() {
       return (
         <div className="space-y-4">
           <KpiStrip dataset={dataset} />
+          <ColumnIntelligence dataset={dataset} />
           <InsightsView dataset={dataset} />
         </div>
       );
     }
 
-    if (step === "visualize") return <AutoCharts dataset={dataset} />;
+    if (step === "visualize") {
+      return (
+        <div className="space-y-6">
+          <DashboardView dataset={dataset} />
+          <SmartCharts dataset={dataset} />
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-6">
