@@ -1,5 +1,6 @@
 import type { CellValue, Dataset, Operation } from "./types";
 import { coerceNumber, isNullish } from "./infer";
+import { buildCanonicalMap, canonicalLabel } from "./canonical";
 import { reprofile } from "./profile";
 
 function titleCase(s: string): string {
@@ -69,6 +70,14 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
       rows = rows.map((r) => {
         const v = r[op.column];
         return typeof v === "string" ? { ...r, [op.column]: fn(v) } : r;
+      });
+      break;
+    }
+    case "standardize_categories": {
+      const canon = buildCanonicalMap(rows.map((r) => r[op.column]));
+      rows = rows.map((r) => {
+        const label = canonicalLabel(r[op.column], canon);
+        return label === null ? r : { ...r, [op.column]: label };
       });
       break;
     }
@@ -193,6 +202,7 @@ export function operationLabel(op: Operation): string {
     case "convert_type": return `Convert ${op.column} → ${op.to}`;
     case "replace": return `Replace in ${op.column}`;
     case "remove_extra_spaces": return `Collapse spaces in ${op.column}`;
+    case "standardize_categories": return `Standardize categories in ${op.column}`;
     case "parse_date": return `Parse dates in ${op.column}`;
     case "remove_outliers": return `Remove ${op.method.toUpperCase()} outliers in ${op.column}`;
     case "drop_empty_rows": return "Drop empty rows";

@@ -1,5 +1,6 @@
 import type { Dataset, Issue } from "./types";
 import { coerceNumber, isNullish } from "./infer";
+import { buildCanonicalMap, canonicalMergeCount } from "./canonical";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+()\-\s\d]{7,}$/;
@@ -259,21 +260,26 @@ export function detectIssues(ds: Dataset): Issue[] {
         });
       }
       // near-duplicate categorical values (e.g. USA / U.S.A / United States → shared token)
+      const canonMap = buildCanonicalMap(ds.rows.map((r) => r[col.name]));
+      const merges = canonicalMergeCount(canonMap);
       const inconsistentGroups = [...normGroups.values()].filter((g) => g.size > 1);
-      if (col.type === "categorical" && inconsistentGroups.length > 0) {
-        const affected = inconsistentGroups.reduce((s, g) => s + g.size, 0);
+      if (col.type === "categorical" && (inconsistentGroups.length > 0 || merges > 0)) {
+        const affected = inconsistentGroups.reduce((s, g) => s + g.size, 0) || merges;
+        const sample = inconsistentGroups[0]
+          ? [...inconsistentGroups[0]]
+          : [...canonMap.entries()].filter(([raw, label]) => raw !== label).slice(0, 3).map(([raw]) => raw);
         issues.push({
           id: `inconsistent:${col.name}`,
           column: col.name,
           type: "inconsistent",
-          title: `${inconsistentGroups.length} inconsistent value groups in "${col.name}"`,
-          description: `Values like ${[...inconsistentGroups[0]]
+          title: `Inconsistent categories in "${col.name}"`,
+          description: `Values like ${sample
             .slice(0, 3)
             .map((v) => `"${v}"`)
-            .join(" / ")} appear to represent the same category.`,
-          severity: "info",
-          recommendation: "Standardize spelling and casing to a single canonical form.",
-          op: { kind: "lowercase", column: col.name },
+            .join(" / ")} represent the same category, so charts split them into separate groups.`,
+          severity: "warning",
+          recommendation: "Merge spelling, casing and short-code variants into one canonical label.",
+          op: { kind: "standardize_categories", column: col.name },
           count: affected,
         });
       }

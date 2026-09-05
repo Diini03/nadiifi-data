@@ -1,6 +1,7 @@
 import type { CellValue, Dataset } from "./types";
 import { coerceNumber, isNullish } from "./infer";
 import { classifyDataset, type SemanticColumn } from "./semantics";
+import { buildCanonicalMap, canonicalLabel } from "./canonical";
 
 export type ChartKind = "bar" | "line" | "pie" | "histogram" | "scatter" | "kpi";
 
@@ -32,17 +33,29 @@ export interface Recommendations {
 
 const num = (v: CellValue) => coerceNumber(v);
 
+/** Measures where a total is meaningless — averages are the honest summary. */
+const NON_ADDITIVE = /(gpa|grade|score|rate|ratio|percent|pct|share|avg|average|mean|median|age|temp|temperature|price|rating|index|bmi|weight|height|score_|_score|level|satisfaction|efficiency|density|speed)/i;
+
+export function isAdditive(col: SemanticColumn): boolean {
+  if (col.role === "percentage") return false;
+  return !NON_ADDITIVE.test(col.name);
+}
+
+export function defaultAggregation(col: SemanticColumn | undefined): "sum" | "avg" {
+  return col && isAdditive(col) ? "sum" : "avg";
+}
+
 function aggregate(
   rows: Record<string, CellValue>[],
   dim: string,
   measure: string | null,
   mode: "sum" | "avg" | "count",
 ) {
+  // Merge spelling / casing / short-code variants ("M", " male ", "Male").
+  const canon = buildCanonicalMap(rows.map((r) => r[dim]));
   const map = new Map<string, { total: number; count: number }>();
   for (const row of rows) {
-    const rawKey = row[dim];
-    if (isNullish(rawKey)) continue;
-    const key = String(rawKey).trim();
+    const key = canonicalLabel(row[dim], canon);
     if (!key) continue;
     const entry = map.get(key) ?? { total: 0, count: 0 };
     if (measure) {
@@ -56,13 +69,25 @@ function aggregate(
   return [...map.entries()]
     .map(([label, v]) => ({
       label,
-      value: mode === "count" ? v.count : mode === "avg" ? (v.count ? v.total / v.count : 0) : v.total,
+      value:
+        mode === "count"
+          ? v.count
+          : mode === "avg"
+          ? v.count
+            ? Number((v.total / v.count).toFixed(4))
+            : 0
+          : v.total,
     }))
     .sort((a, b) => b.value - a.value);
 }
 
-function timeSeries(rows: Record<string, CellValue>[], timeCol: string, measure: string) {
-  const map = new Map<string, number>();
+function timeSeries(
+  rows: Record<string, CellValue>[],
+  timeCol: string,
+  measure: string,
+  mode: "sum" | "avg" = "sum",
+) {
+  const map = new Map<string, { total: number; count: number }>();
   for (const row of rows) {
     const raw = row[timeCol];
     if (isNullish(raw)) continue;
@@ -71,9 +96,17 @@ function timeSeries(rows: Record<string, CellValue>[], timeCol: string, measure:
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const n = num(row[measure]);
     if (n === null) continue;
-    map.set(key, (map.get(key) ?? 0) + n);
+    const e = map.get(key) ?? { total: 0, count: 0 };
+    e.total += n;
+    e.count += 1;
+    map.set(key, e);
   }
-  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([label, value]) => ({ label, value }));
+  return [...map.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([label, v]) => ({
+      label,
+      value: mode === "avg" ? Number((v.total / v.count).toFixed(4)) : v.total,
+    }));
 }
 
 function histogram(rows: Record<string, CellValue>[], col: string, bins = 12) {
@@ -134,7 +167,7 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
     if (nums.length === 0) continue;
     const total = nums.reduce((s, n) => s + n, 0);
     const avg = total / nums.length;
-    const isRate = m.role === "percentage";
+    const isRate = !isAdditive(m);
     charts.push({
       id: `kpi-${m.name}`,
       kind: "kpi",
@@ -151,7 +184,8 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   // Time series.
   for (const t of times.slice(0, 1)) {
     for (const m of measures.slice(0, 2)) {
-      const data = timeSeries(rows, t.name, m.name);
+      const lineAgg = defaultAggregation(m);
+      const data = timeSeries(rows, t.name, m.name, lineAgg);
       if (data.length < 3) {
         rejected.push({ title: `${m.name} over ${t.name}`, reason: `Skipped: fewer than 3 usable time periods after parsing ${t.name}.` });
         continue;
@@ -160,12 +194,12 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
         id: `line-${t.name}-${m.name}`,
         kind: "line",
         title: `${m.name} over time`,
-        subtitle: `monthly total, grouped by ${t.name}`,
+        subtitle: `monthly ${lineAgg === "avg" ? "average" : "total"}, grouped by ${t.name}`,
         why: `${t.name} is a datetime column and ${m.name} is an additive measure — a trend line shows how it moves across ${data.length} periods.`,
         confidence: Math.min(0.95, (t.confidence + m.confidence) / 2 + 0.05),
         dimension: t.name,
         measure: m.name,
-        aggregation: "sum",
+        aggregation: lineAgg,
         data,
       });
     }
@@ -175,18 +209,19 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   for (const d of dimensions.slice(0, 3)) {
     const m = measures[0];
     if (m) {
-      const data = aggregate(rows, d.name, m.name, "sum").slice(0, 12);
+      const agg = defaultAggregation(m);
+      const data = aggregate(rows, d.name, m.name, agg).slice(0, 12);
       if (data.length >= 2) {
         charts.push({
           id: `bar-${d.name}-${m.name}`,
           kind: "bar",
-          title: `${m.name} by ${d.name}`,
-          subtitle: `${data.length} groups, summed`,
-          why: `${d.name} is a ${d.role === "geographic" ? "geographic" : "categorical"} dimension with ${d.cardinality} groups, and ${m.name} is additive — the classic comparison view.`,
+          title: `${agg === "avg" ? "Average " : ""}${m.name} by ${d.name}`,
+          subtitle: `${data.length} groups, ${agg === "avg" ? "averaged" : "summed"}`,
+          why: `${d.name} is a ${d.role === "geographic" ? "geographic" : "categorical"} dimension with ${d.cardinality} groups, and ${m.name} is ${agg === "avg" ? "not additive, so each group shows its mean" : "additive — the classic comparison view"}.`,
           confidence: Math.min(0.96, (d.confidence + m.confidence) / 2 + 0.04),
           dimension: d.name,
           measure: m.name,
-          aggregation: "sum",
+          aggregation: agg,
           data,
         });
       }
@@ -211,18 +246,19 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   const pieDim = dimensions.find((d) => d.cardinality >= 2 && d.cardinality <= 6);
   if (pieDim) {
     const m = measures[0];
-    const data = aggregate(rows, pieDim.name, m ? m.name : null, m ? "sum" : "count");
+    const pieAgg = m ? defaultAggregation(m) : "count";
+    const data = aggregate(rows, pieDim.name, m ? m.name : null, pieAgg);
     if (data.length >= 2)
       charts.push({
         id: `pie-${pieDim.name}`,
         kind: "pie",
         title: `Share by ${pieDim.name}`,
-        subtitle: m ? `share of ${m.name}` : "share of records",
+        subtitle: m ? (pieAgg === "avg" ? `average ${m.name} per group` : `share of ${m.name}`) : "share of records",
         why: `${pieDim.name} has only ${pieDim.cardinality} groups, which is few enough for a part-to-whole view.`,
         confidence: Math.min(0.9, pieDim.confidence),
         dimension: pieDim.name,
         measure: m?.name,
-        aggregation: m ? "sum" : "count",
+        aggregation: pieAgg,
         data,
       });
   } else if (dimensions.length > 0) {

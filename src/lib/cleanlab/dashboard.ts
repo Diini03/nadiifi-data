@@ -64,12 +64,19 @@ function buildInsights(cards: DashboardCard[], dataset: Dataset): string[] {
     const data = spec.data as Array<{ label: string; value: number }>;
     if (data.length < 2) continue;
     if (spec.kind === "bar" && spec.dimension) {
-      const total = data.reduce((s, d) => s + Number(d.value || 0), 0);
       const top = data[0];
-      if (total > 0)
+      const bottom = data[data.length - 1];
+      if (spec.aggregation === "avg") {
         out.push(
-          `${top.label} leads ${spec.dimension} with ${fmt(Number(top.value))} (${Math.round((Number(top.value) / total) * 100)}% of the ${spec.measure ?? "record"} total across ${data.length} groups).`,
+          `${top.label} has the highest average ${spec.measure} at ${fmt(Number(top.value))}, versus ${fmt(Number(bottom.value))} for ${bottom.label}, across ${data.length} ${spec.dimension} groups.`,
         );
+      } else {
+        const total = data.reduce((s, d) => s + Number(d.value || 0), 0);
+        if (total > 0)
+          out.push(
+            `${top.label} leads ${spec.dimension} with ${fmt(Number(top.value))} (${Math.round((Number(top.value) / total) * 100)}% of the ${spec.measure ?? "record"} total across ${data.length} groups).`,
+          );
+      }
     }
     if (spec.kind === "line") {
       const first = Number(data[0].value);
