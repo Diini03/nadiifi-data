@@ -75,6 +75,7 @@ export type Operation =
   | { kind: "convert_type"; column: string; to: ColumnType }
   | { kind: "replace"; column: string; find: string; replace: string }
   | { kind: "remove_extra_spaces"; column: string }
+  | { kind: "standardize_categories"; column: string }
   | { kind: "parse_date"; column: string }
   | { kind: "remove_outliers"; column: string; method: "iqr" | "zscore" }
   | { kind: "drop_empty_rows" }
