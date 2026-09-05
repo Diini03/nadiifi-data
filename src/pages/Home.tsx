@@ -14,7 +14,9 @@ import { InsightsView } from "@/components/workspace/InsightsView";
 import { KpiStrip } from "@/components/workspace/KpiStrip";
 import { StatusBar } from "@/components/workspace/StatusBar";
 import { CloudLibrary } from "@/components/workspace/CloudLibrary";
-import { AutoCharts } from "@/components/charts/AutoCharts";
+import { SmartCharts } from "@/components/charts/SmartCharts";
+import { ColumnIntelligence } from "@/components/workspace/ColumnIntelligence";
+import { DashboardView } from "@/components/workspace/DashboardView";
 import { DatasetTable } from "@/components/app/DatasetTable";
 import { Button } from "@/components/ui/button";
 import { parseFile } from "@/lib/cleanlab/parse";
@@ -234,12 +236,20 @@ export default function Home() {
       return (
         <div className="space-y-4">
           <KpiStrip dataset={dataset} />
+          <ColumnIntelligence dataset={dataset} />
           <InsightsView dataset={dataset} />
         </div>
       );
     }
 
-    if (step === "visualize") return <AutoCharts dataset={dataset} />;
+    if (step === "visualize") {
+      return (
+        <div className="space-y-6">
+          <DashboardView dataset={dataset} />
+          <SmartCharts dataset={dataset} />
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-6">
