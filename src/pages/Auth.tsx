@@ -128,6 +128,33 @@ export default function AuthPage() {
             </Button>
           </form>
 
+          {mode === "signin" && (
+            <button
+              type="button"
+              className="mt-3 w-full text-center text-[12px] text-muted-foreground hover:text-foreground hover:underline"
+              onClick={async () => {
+                if (!email) {
+                  toast.error("Enter your email first, then tap reset.");
+                  return;
+                }
+                setBusy(true);
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success("Password reset link sent. Check your email.");
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Could not send reset link");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Forgot your password?
+            </button>
+          )}
+
           <p className="mt-4 text-center text-[12px] text-muted-foreground">
             {mode === "signin" ? "New here?" : "Already have an account?"}{" "}
             <button
