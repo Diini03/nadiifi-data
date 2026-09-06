@@ -191,43 +191,38 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
         </div>
       </Card>
 
-      <div ref={boardRef} className="space-y-4 rounded-xl bg-background p-4">
-        <div>
+      <div ref={boardRef} className={theme.board}>
+        <div className={theme.header}>
           <Input
             aria-label="Dashboard title"
             value={title}
             onChange={(e) => setCustomTitle(e.target.value)}
-            className="h-auto border-none bg-transparent px-0 font-display text-2xl font-semibold tracking-[-0.02em] shadow-none focus-visible:ring-0"
+            className={theme.title}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className={theme.subtitle}>
             {spec.domain !== "General" ? `${spec.domain} dataset · ` : ""}
             {dataset.rows.length.toLocaleString()} rows · {dataset.columns.length} columns · composed from cleaned data
           </p>
         </div>
 
-        <div
-          className={cn(
-            "grid gap-3",
-            template === "minimal" ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4",
-          )}
-        >
+        <div className={theme.kpiGrid}>
           {spec.kpis.map((k) => (
-            <Card key={k.id} className="p-4 shadow-soft">
-              <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{k.label}</div>
-              <div className="mt-1 font-display text-2xl font-semibold tabular-nums">{k.value}</div>
+            <Card key={k.id} className={theme.kpiCard}>
+              <div className={theme.kpiLabel}>{k.label}</div>
+              <div className={theme.kpiValue}>{k.value}</div>
               <div className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{k.hint}</div>
             </Card>
           ))}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className={theme.chartGrid}>
           {cards.map(({ spec: c, span }) => {
             const conf = confidenceLabel(c.confidence);
             return (
-              <Card key={c.id} className={cn("p-4 shadow-soft", span === 2 && "lg:col-span-2")}>
+              <Card key={c.id} className={cn(theme.chartCard, span === 2 && "lg:col-span-2")}>
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium">{c.title}</div>
+                    <div className={cn("truncate", theme.chartTitle)}>{c.title}</div>
                     <div className="truncate text-xs text-muted-foreground">{c.subtitle}</div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
@@ -241,18 +236,18 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
                     </button>
                   </div>
                 </div>
-                <SpecChart spec={c} height={span === 2 ? 280 : 220} />
+                <SpecChart spec={c} height={span === 2 ? (template === "story" ? 340 : 280) : 220} />
               </Card>
             );
           })}
         </div>
 
-        <Card className="p-4 shadow-soft">
+        <Card className={theme.insightCard}>
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
             <Sparkles className="h-4 w-4 text-primary" />
             What stands out
           </div>
-          <ul className="space-y-1.5 text-sm text-muted-foreground">
+          <ul className={cn("space-y-1.5 text-muted-foreground", template === "story" ? "text-[15px] leading-relaxed" : "text-sm")}>
             {spec.insights.map((i, idx) => (
               <li key={idx} className="flex gap-2">
                 <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
