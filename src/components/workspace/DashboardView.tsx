@@ -10,6 +10,80 @@ import { composeDashboard, TEMPLATES, type TemplateId } from "@/lib/cleanlab/das
 import { SpecChart } from "@/components/charts/SmartCharts";
 import { confidenceLabel } from "@/lib/cleanlab/recommend";
 
+type Theme = {
+  board: string;
+  header: string;
+  title: string;
+  subtitle: string;
+  kpiGrid: string;
+  kpiCard: string;
+  kpiLabel: string;
+  kpiValue: string;
+  chartGrid: string;
+  chartCard: string;
+  chartTitle: string;
+  insightCard: string;
+};
+
+const THEMES: Record<TemplateId, Theme> = {
+  executive: {
+    board: "space-y-5 rounded-xl bg-background p-6",
+    header: "rounded-lg border-l-4 border-primary bg-muted/40 px-5 py-4",
+    title: "h-auto border-none bg-transparent px-0 font-display text-3xl font-semibold tracking-[-0.03em] shadow-none focus-visible:ring-0",
+    subtitle: "text-xs text-muted-foreground",
+    kpiGrid: "grid gap-3 sm:grid-cols-2 lg:grid-cols-4",
+    kpiCard: "rounded-lg border-border/70 bg-muted/40 p-5 shadow-none",
+    kpiLabel: "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground",
+    kpiValue: "mt-1.5 font-display text-3xl font-semibold tabular-nums",
+    chartGrid: "grid gap-4 lg:grid-cols-2",
+    chartCard: "p-5 shadow-soft",
+    chartTitle: "text-[15px] font-semibold",
+    insightCard: "border-l-4 border-primary p-5 shadow-soft",
+  },
+  analytical: {
+    board: "space-y-3 rounded-xl bg-background p-4",
+    header: "border-b border-border pb-2",
+    title: "h-auto border-none bg-transparent px-0 font-mono text-xl font-semibold tracking-[-0.01em] shadow-none focus-visible:ring-0",
+    subtitle: "font-mono text-[11px] text-muted-foreground",
+    kpiGrid: "grid gap-2 sm:grid-cols-2 lg:grid-cols-4",
+    kpiCard: "rounded-md border-border p-3 shadow-none",
+    kpiLabel: "font-mono text-[10px] uppercase tracking-wider text-muted-foreground",
+    kpiValue: "mt-0.5 font-mono text-xl font-semibold tabular-nums",
+    chartGrid: "grid gap-3 lg:grid-cols-2",
+    chartCard: "rounded-md p-3 shadow-none",
+    chartTitle: "text-[13px] font-semibold",
+    insightCard: "rounded-md p-3 shadow-none",
+  },
+  story: {
+    board: "mx-auto max-w-4xl space-y-6 rounded-xl bg-background p-6",
+    header: "text-center",
+    title: "h-auto border-none bg-transparent px-0 text-center font-display text-[32px] font-semibold leading-tight tracking-[-0.03em] shadow-none focus-visible:ring-0",
+    subtitle: "text-center text-[12.5px] text-muted-foreground",
+    kpiGrid: "grid gap-4 sm:grid-cols-3",
+    kpiCard: "border-none bg-transparent p-0 text-center shadow-none",
+    kpiLabel: "text-[11px] uppercase tracking-[0.18em] text-muted-foreground",
+    kpiValue: "mt-1 font-display text-3xl font-semibold tabular-nums",
+    chartGrid: "grid gap-6",
+    chartCard: "border-none p-0 shadow-none",
+    chartTitle: "text-[16px] font-semibold",
+    insightCard: "border-none bg-muted/40 p-6 shadow-none",
+  },
+  minimal: {
+    board: "space-y-8 rounded-xl bg-background p-8",
+    header: "",
+    title: "h-auto border-none bg-transparent px-0 font-display text-2xl font-medium tracking-[-0.02em] shadow-none focus-visible:ring-0",
+    subtitle: "text-[11.5px] text-muted-foreground",
+    kpiGrid: "grid gap-8 sm:grid-cols-3",
+    kpiCard: "border-none bg-transparent p-0 shadow-none",
+    kpiLabel: "text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground",
+    kpiValue: "mt-1 font-display text-2xl font-medium tabular-nums",
+    chartGrid: "grid gap-8 lg:grid-cols-2",
+    chartCard: "border-none p-0 shadow-none",
+    chartTitle: "text-[13.5px] font-medium",
+    insightCard: "border-none bg-transparent p-0 shadow-none",
+  },
+};
+
 export function DashboardView({ dataset }: { dataset: Dataset }) {
   const [template, setTemplate] = useState<TemplateId>("executive");
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -18,6 +92,7 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
   const boardRef = useRef<HTMLDivElement>(null);
 
   const spec = useMemo(() => composeDashboard(dataset, template), [dataset, template]);
+  const theme = THEMES[template];
   const title = customTitle ?? spec.title;
   const cards = spec.cards.filter((c) => !hidden.has(c.spec.id));
 
