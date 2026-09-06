@@ -1,4 +1,5 @@
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, FolderOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,6 +36,12 @@ export function UserMenu() {
           <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="truncate">{user.email}</span>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="gap-2">
+          <Link to="/workspace">
+            <FolderOpen className="h-3.5 w-3.5" /> My workspace
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={async () => {

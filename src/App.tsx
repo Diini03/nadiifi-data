@@ -12,6 +12,8 @@ import { ScrollRestoration, ScrollToTopButton } from "@/components/nadiifi/Scrol
 
 const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Workspace = lazy(() => import("./pages/Workspace"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -48,6 +50,15 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route
+                    path="/workspace"
+                    element={
+                      <RequireAuth>
+                        <Workspace />
+                      </RequireAuth>
+                    }
+                  />
                   <Route path="/how-it-works" element={<HowItWorks />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/pricing" element={<Pricing />} />
