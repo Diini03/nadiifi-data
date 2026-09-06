@@ -26,7 +26,7 @@ export default function Workspace() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <Navbar />
+      <Navbar onStart={() => navigate("/")} />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
         <header className="mb-6">
           <h1 className="font-display text-2xl font-semibold tracking-[-0.02em]">Your workspace</h1>
