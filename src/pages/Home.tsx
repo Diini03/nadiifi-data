@@ -28,7 +28,7 @@ import { buildSampleFile } from "@/lib/cleanlab/sample";
 import type { Dataset, Issue } from "@/lib/cleanlab/types";
 import { useDatasetStore } from "@/store/useDatasetStore";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { upsertSavedDataset } from "@/lib/cloud/datasets";
+import { upsertSavedDataset, loadSavedDataset } from "@/lib/cloud/datasets";
 
 type Stage = "empty" | "inspecting" | "ready" | "cleaned";
 
@@ -183,6 +183,36 @@ export default function Home() {
     setStep("clean");
     toast.success(`Opened "${ds.name}"`);
   };
+
+  // Open a saved dataset requested from the workspace page (/?open=<id>)
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("open");
+    if (!id || !user) return;
+    let cancelled = false;
+    setStage("inspecting");
+    loadSavedDataset(id)
+      .then((ds) => {
+        if (cancelled) return;
+        if (ds) openFromCloud(ds);
+        else {
+          setStage("empty");
+          toast.error("That dataset is no longer available.");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStage("empty");
+          toast.error("Couldn't open that dataset.");
+        }
+      })
+      .finally(() => {
+        window.history.replaceState({}, "", "/");
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const renderStep = () => {
     if (stage === "inspecting") return <InspectingOverlay />;
