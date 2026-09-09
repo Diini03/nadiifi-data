@@ -178,7 +178,7 @@ export function buildCanonicalMap(values: Iterable<CellValue>): Map<string, stri
       // Prefer the most common written form, but never a short code when a
       // spelled-out variant exists.
       const sorted = [...bucket.entries()].sort(
-        (a, b) => b[1] - a[1] || b[0].length - a[0].length || a[0].localeCompare(b[0]),
+        (a, b) => b[1] - a[1] || a[0].length - b[0].length || a[0].localeCompare(b[0]),
       );
       const longest = sorted.reduce((best, cur) => (cur[0].length > best[0].length ? cur : best), sorted[0]);
       const dominant = sorted[0][0].length <= 3 && longest[0].length > 3 ? longest[0] : sorted[0][0];
