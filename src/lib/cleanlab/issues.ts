@@ -234,7 +234,17 @@ export function detectIssues(ds: Dataset): Issue[] {
           count: ws,
         });
       }
-      if (mixedCase > 0) {
+      // near-duplicate categorical values (e.g. Male / male / M / Maale)
+      const canonMap = buildCanonicalMap(ds.rows.map((r) => r[col.name]));
+      const merges = canonicalMergeCount(canonMap);
+      const groups = canonicalGroups(canonMap);
+      // any low-cardinality text column behaves like a category, not only typed ones
+      const looksCategorical =
+        col.type === "categorical" ||
+        (col.type === "text" && raw.size > 1 && (raw.size <= 40 || raw.size / Math.max(1, nonNull) < 0.1));
+      const hasVariants = looksCategorical && (merges > 0 || groups.length > 0);
+
+      if (mixedCase > 0 && !hasVariants) {
         issues.push({
           id: `case:${col.name}`,
           column: col.name,
@@ -259,30 +269,34 @@ export function detectIssues(ds: Dataset): Issue[] {
           count: mojibake,
         });
       }
-      // near-duplicate categorical values (e.g. USA / U.S.A / United States → shared token)
-      const canonMap = buildCanonicalMap(ds.rows.map((r) => r[col.name]));
-      const merges = canonicalMergeCount(canonMap);
-      const inconsistentGroups = [...normGroups.values()].filter((g) => g.size > 1);
-      if (col.type === "categorical" && (inconsistentGroups.length > 0 || merges > 0)) {
-        const affected = inconsistentGroups.reduce((s, g) => s + g.size, 0) || merges;
-        const sample = inconsistentGroups[0]
-          ? [...inconsistentGroups[0]]
-          : [...canonMap.entries()].filter(([raw, label]) => raw !== label).slice(0, 3).map(([raw]) => raw);
+      if (hasVariants) {
+        let affected = 0;
+        for (const r of ds.rows) {
+          const v = r[col.name];
+          if (isNullish(v)) continue;
+          const rawV = String(v).trim().replace(/\s+/g, " ");
+          if (canonMap.get(rawV) && canonMap.get(rawV) !== String(v)) affected++;
+        }
+        const preview = groups
+          .slice(0, 3)
+          .map((g) => `${g.variants.map((v) => `"${v}"`).join(" / ")} → "${g.label}"`)
+          .join("; ");
+        const distinctAfter = new Set(canonMap.values()).size;
         issues.push({
           id: `inconsistent:${col.name}`,
           column: col.name,
           type: "inconsistent",
-          title: `Inconsistent categories in "${col.name}"`,
-          description: `Values like ${sample
-            .slice(0, 3)
-            .map((v) => `"${v}"`)
-            .join(" / ")} represent the same category, so charts split them into separate groups.`,
+          title: `Inconsistent categories in "${col.name}" (${raw.size} spellings, ${distinctAfter} real groups)`,
+          description: preview
+            ? `${preview}${groups.length > 3 ? ` and ${groups.length - 3} more` : ""} — charts currently split these into separate groups.`
+            : "Several spellings represent the same category, so charts split them into separate groups.",
           severity: "warning",
-          recommendation: "Merge spelling, casing and short-code variants into one canonical label.",
+          recommendation: "Merge casing, spacing, short-code and misspelled variants into one canonical label.",
           op: { kind: "standardize_categories", column: col.name },
-          count: affected,
+          count: Math.max(affected, merges),
         });
       }
+
       // numeric stored as text
       if (
         col.type === "text" &&
