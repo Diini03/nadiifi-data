@@ -1,6 +1,6 @@
 import type { Dataset, Issue } from "./types";
 import { coerceNumber, isNullish } from "./infer";
-import { buildCanonicalMap, canonicalMergeCount } from "./canonical";
+import { buildCanonicalMap, canonicalMergeCount, canonicalGroups } from "./canonical";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+()\-\s\d]{7,}$/;
