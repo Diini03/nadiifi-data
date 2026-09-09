@@ -98,15 +98,17 @@ export function buildCanonicalMap(values: Iterable<CellValue>): Map<string, stri
   }
 
   const tokenList = [...tokenCount.keys()];
-  const family =
+  const inFamily = (f: (typeof FAMILIES)[number], list: string[]) =>
+    list.filter((t) => t in f.map).length / list.length;
+  const preFamily =
     tokenList.length > 0 && tokenList.length <= 12
-      ? FAMILIES.find((f) => tokenList.every((t) => t in f.map))
+      ? FAMILIES.find((f) => inFamily(f, tokenList) === 1)
       : undefined;
 
   // --- pass 3: fuzzy merge of tokens onto dominant tokens -------------------
   // Only for columns that behave like categories (few distinct values).
   const alias = new Map<string, string>(); // token -> target token
-  if (!family && tokenList.length > 1 && tokenList.length <= 40) {
+  if (!preFamily && tokenList.length > 1 && tokenList.length <= 40) {
     const ranked = [...tokenCount.entries()].sort(
       (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
     );
@@ -158,18 +160,32 @@ export function buildCanonicalMap(values: Iterable<CellValue>): Map<string, stri
     groups.set(target, g);
   }
 
+  // Known vocabularies are re-checked on the merged groups, so "Maale" no
+  // longer stops the gender family from applying.
+  const groupTokens = [...groups.keys()];
+  const family =
+    preFamily ??
+    (groupTokens.length <= 12
+      ? FAMILIES.find((f) => inFamily(f, groupTokens) === 1)
+      : undefined);
+
   const out = new Map<string, string>();
   for (const [token, bucket] of groups) {
     let label: string;
     if (family) {
       label = family.map[token];
     } else {
-      // Keep the most common written form, falling back to title case.
-      const sorted = [...bucket.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-      const dominant = sorted[0][0];
+      // Prefer the most common written form, but never a short code when a
+      // spelled-out variant exists.
+      const sorted = [...bucket.entries()].sort(
+        (a, b) => b[1] - a[1] || b[0].length - a[0].length || a[0].localeCompare(b[0]),
+      );
+      const longest = sorted.reduce((best, cur) => (cur[0].length > best[0].length ? cur : best), sorted[0]);
+      const dominant = sorted[0][0].length <= 3 && longest[0].length > 3 ? longest[0] : sorted[0][0];
       label = bucket.size > 1 && dominant === dominant.toLowerCase() ? titleCase(dominant) : dominant;
     }
     for (const raw of bucket.keys()) out.set(raw, label);
+
   }
   return out;
 }
