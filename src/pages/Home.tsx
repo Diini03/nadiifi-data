@@ -9,6 +9,7 @@ import { EmptyDropzone } from "@/components/workspace/EmptyDropzone";
 import { InspectingOverlay } from "@/components/workspace/InspectingOverlay";
 import { InspectionPanel } from "@/components/workspace/InspectionPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
+import { CategoryOverrides } from "@/components/workspace/CategoryOverrides";
 import { ExportPanel } from "@/components/workspace/ExportPanel";
 import { InsightsView } from "@/components/workspace/InsightsView";
 import { KpiStrip } from "@/components/workspace/KpiStrip";
@@ -25,7 +26,7 @@ import { detectIssues } from "@/lib/cleanlab/issues";
 import { applyOperation, operationLabel } from "@/lib/cleanlab/operations";
 import { exportCSV } from "@/lib/cleanlab/exporters";
 import { buildSampleFile } from "@/lib/cleanlab/sample";
-import type { Dataset, Issue } from "@/lib/cleanlab/types";
+import type { Dataset, Issue, Operation } from "@/lib/cleanlab/types";
 import { useDatasetStore } from "@/store/useDatasetStore";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { upsertSavedDataset, loadSavedDataset } from "@/lib/cloud/datasets";
@@ -146,6 +147,17 @@ export default function Home() {
     });
   };
 
+  const applyManual = (op: Operation) => {
+    if (!dataset) return;
+    const before = dataset;
+    const working = applyOperation(before, op);
+    setUndoStack((s) => [...s, before]);
+    setDataset(working);
+    setLastAction(operationLabel(op));
+    syncCloud(working);
+    toast.success(operationLabel(op));
+  };
+
   const handleUndo = () => {
     const last = undoStack[undoStack.length - 1];
     if (!last) return;
@@ -257,6 +269,7 @@ export default function Home() {
               />
             </div>
           )}
+          <CategoryOverrides dataset={dataset} onApply={applyManual} />
           {stage === "cleaned" && <DatasetTable dataset={dataset} />}
         </div>
       );

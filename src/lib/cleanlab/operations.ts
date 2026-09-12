@@ -81,6 +81,16 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
       });
       break;
     }
+    case "map_values": {
+      rows = rows.map((r) => {
+        const v = r[op.column];
+        if (isNullish(v)) return r;
+        const raw = String(v).trim().replace(/\s+/g, " ");
+        const next = op.mapping[raw];
+        return next === undefined || next === v ? r : { ...r, [op.column]: next };
+      });
+      break;
+    }
     case "remove_extra_spaces": {
       rows = rows.map((r) => {
         const v = r[op.column];
@@ -203,6 +213,7 @@ export function operationLabel(op: Operation): string {
     case "replace": return `Replace in ${op.column}`;
     case "remove_extra_spaces": return `Collapse spaces in ${op.column}`;
     case "standardize_categories": return `Standardize categories in ${op.column}`;
+    case "map_values": return `Rename ${Object.keys(op.mapping).length} values in ${op.column}`;
     case "parse_date": return `Parse dates in ${op.column}`;
     case "remove_outliers": return `Remove ${op.method.toUpperCase()} outliers in ${op.column}`;
     case "drop_empty_rows": return "Drop empty rows";
