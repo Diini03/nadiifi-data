@@ -269,6 +269,7 @@ export default function Home() {
               />
             </div>
           )}
+          <CategoryOverrides dataset={dataset} onApply={applyManual} />
           {stage === "cleaned" && <DatasetTable dataset={dataset} />}
         </div>
       );
