@@ -25,8 +25,9 @@ function candidates(ds: Dataset): ColumnGroups[] {
     const values = ds.rows.map((r) => r[col.name]);
     const nonNull = values.filter((v) => !isNullish(v)).length;
     const distinct = new Set(values.filter((v) => !isNullish(v)).map((v) => String(v).trim())).size;
-    if (distinct < 2 || distinct > 40) continue;
-    if (col.type === "text" && distinct / Math.max(1, nonNull) > 0.1) continue;
+    if (distinct < 2) continue;
+    if (col.type === "text" && distinct > 40 && distinct / Math.max(1, nonNull) > 0.1) continue;
+    if (distinct > 60) continue;
     const map = buildCanonicalMap(values);
     const groups = canonicalGroups(map);
     const labels = [...new Set(map.values())].sort();
