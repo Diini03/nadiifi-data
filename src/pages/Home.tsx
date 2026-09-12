@@ -147,6 +147,17 @@ export default function Home() {
     });
   };
 
+  const applyManual = (op: Operation) => {
+    if (!dataset) return;
+    const before = dataset;
+    const working = applyOperation(before, op);
+    setUndoStack((s) => [...s, before]);
+    setDataset(working);
+    setLastAction(operationLabel(op));
+    syncCloud(working);
+    toast.success(operationLabel(op));
+  };
+
   const handleUndo = () => {
     const last = undoStack[undoStack.length - 1];
     if (!last) return;
