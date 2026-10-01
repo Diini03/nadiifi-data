@@ -17,6 +17,7 @@ import { StatusBar } from "@/components/workspace/StatusBar";
 import { CloudLibrary } from "@/components/workspace/CloudLibrary";
 import { SmartCharts } from "@/components/charts/SmartCharts";
 import { ColumnIntelligence } from "@/components/workspace/ColumnIntelligence";
+import { AiSummary } from "@/components/workspace/AiSummary";
 import { DashboardView } from "@/components/workspace/DashboardView";
 import { DatasetTable } from "@/components/app/DatasetTable";
 import { Button } from "@/components/ui/button";
@@ -279,6 +280,7 @@ export default function Home() {
       return (
         <div className="space-y-4">
           <KpiStrip dataset={dataset} />
+          <AiSummary dataset={dataset} />
           <ColumnIntelligence dataset={dataset} />
           <InsightsView dataset={dataset} />
         </div>
