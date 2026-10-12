@@ -9,6 +9,7 @@ import type { Dataset } from "@/lib/cleanlab/types";
 import { composeDashboard, TEMPLATES, type TemplateId } from "@/lib/cleanlab/dashboard";
 import { SpecChart } from "@/components/charts/SmartCharts";
 import { confidenceLabel } from "@/lib/cleanlab/recommend";
+import { TemplateBuilder, useCustomTemplate, FONT_CLASS, LAYOUT_CLASS, DENSITY_CLASS } from "./TemplateBuilder";
 
 type Theme = {
   board: string;
@@ -90,9 +91,20 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
   const [customTitle, setCustomTitle] = useState<string | null>(null);
   const [exporting, setExporting] = useState<null | "pdf" | "png">(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const [custom, setCustom] = useCustomTemplate();
 
   const spec = useMemo(() => composeDashboard(dataset, template), [dataset, template]);
-  const theme = THEMES[template];
+  const base = THEMES[template];
+  const theme: Theme = custom.enabled
+    ? {
+        ...base,
+        board: cn(base.board, DENSITY_CLASS[custom.density], FONT_CLASS[custom.font], !custom.rounded && "rounded-none [&_*]:rounded-none"),
+        title: cn(base.title, FONT_CLASS[custom.font]),
+        kpiValue: cn(base.kpiValue, FONT_CLASS[custom.font]),
+        chartGrid: LAYOUT_CLASS[custom.layout] ?? base.chartGrid,
+      }
+    : base;
+  const boardStyle = custom.enabled ? ({ "--primary": custom.accent, "--ring": custom.accent } as React.CSSProperties) : undefined;
   const title = customTitle ?? spec.title;
   const cards = spec.cards.filter((c) => !hidden.has(c.spec.id));
 
@@ -180,6 +192,7 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
           ))}
         </div>
         <div className="ml-auto flex gap-2">
+          <TemplateBuilder value={custom} onChange={setCustom} />
           <Button size="sm" variant="outline" onClick={exportPng} disabled={exporting !== null} className="gap-1.5">
             {exporting === "png" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileImage className="h-3.5 w-3.5" />}
             PNG
@@ -191,7 +204,7 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
         </div>
       </Card>
 
-      <div ref={boardRef} className={theme.board}>
+      <div ref={boardRef} className={theme.board} style={boardStyle}>
         <div className={theme.header}>
           <Input
             aria-label="Dashboard title"
@@ -219,7 +232,7 @@ export function DashboardView({ dataset }: { dataset: Dataset }) {
           {cards.map(({ spec: c, span }) => {
             const conf = confidenceLabel(c.confidence);
             return (
-              <Card key={c.id} className={cn(theme.chartCard, span === 2 && "lg:col-span-2")}>
+              <Card key={c.id} className={cn(theme.chartCard, span === 2 && !(custom.enabled && custom.layout !== "auto") && "lg:col-span-2")}>
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className={cn("truncate", theme.chartTitle)}>{c.title}</div>
