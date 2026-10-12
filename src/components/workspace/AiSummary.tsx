@@ -4,20 +4,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import type { Dataset } from "@/lib/cleanlab/types";
 import { detectIssues } from "@/lib/cleanlab/issues";
+import { classifyDataset } from "@/lib/cleanlab/semantics";
 
 function buildDigest(ds: Dataset) {
+  const sem = new Map(classifyDataset(ds).map((s) => [s.name, s]));
   return {
     name: ds.name,
     rows: ds.rows.length,
-    columns: ds.columns.slice(0, 60).map((c) => ({
-      name: c.name,
-      type: c.type,
-      missingPct: Math.round(c.stats.missingPct * 10) / 10,
-      unique: c.stats.unique,
-      ...(c.stats.mean !== undefined
-        ? { min: c.stats.min, max: c.stats.max, mean: c.stats.mean, median: c.stats.median, outliers: c.stats.outliersIQR }
-        : { top: c.stats.top.slice(0, 5).map((t) => ({ value: String(t.value).slice(0, 40), count: t.count })) }),
-    })),
+    columns: ds.columns.slice(0, 60).map((c) => {
+      const s = sem.get(c.name);
+      return {
+        name: c.name,
+        type: c.type,
+        role: s?.role,
+        roleConfidence: s ? Math.round(s.confidence * 100) / 100 : undefined,
+        useFor: s?.recommendedUses.slice(0, 3),
+        avoid: s?.avoidUses.slice(0, 2),
+        missingPct: Math.round(c.stats.missingPct * 10) / 10,
+        unique: c.stats.unique,
+        ...(c.stats.mean !== undefined
+          ? { min: c.stats.min, max: c.stats.max, mean: c.stats.mean, median: c.stats.median, outliers: c.stats.outliersIQR }
+          : { top: c.stats.top.slice(0, 5).map((t) => ({ value: String(t.value).slice(0, 40), count: t.count })) }),
+      };
+    }),
     issues: detectIssues(ds).slice(0, 15).map((i) => ({ title: i.title, severity: i.severity, column: i.column })),
   };
 }

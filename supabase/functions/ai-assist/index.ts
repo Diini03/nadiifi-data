@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
     const system =
       mode === "summary"
-        ? "You are a senior data analyst. Given a compact JSON profile of a dataset (column names, types and statistics only), write a plain-English briefing. Format exactly: a 2-3 sentence overview paragraph, then a line 'Key findings:' followed by 3-4 lines starting with '- ', then a line 'Next steps:' followed by 2-3 lines starting with '- '. Keep it under 200 words. Only state facts supported by the profile. No markdown headings or bold."
+        ? "You are a senior data analyst. Given a compact JSON profile of a dataset (column names, types, semantic roles such as identifier/measure/dimension/datetime with confidence, recommended and avoided uses, and statistics only), write a plain-English briefing. Format exactly: a 2-3 sentence overview paragraph, then a line 'Key findings:' followed by 3-4 lines starting with '- ', then a line 'Next steps:' followed by 2-3 lines starting with '- '. Keep it under 200 words. Use the semantic roles: never treat identifiers as measures, and recommend analyses that fit each role. Only state facts supported by the profile. No markdown headings or bold."
         : mode === "suggest"
         ? "You are a data-cleaning expert. Given a dataset profile with detected issues, output an ordered, actionable list (max 6 items) of cleaning operations, each with a one-line justification. Numbered list. No preamble."
         : "You are a data quality expert. Explain the given data issue in 2-3 short sentences and suggest one concrete fix. Plain text.";
