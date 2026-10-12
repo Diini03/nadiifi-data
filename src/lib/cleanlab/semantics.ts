@@ -170,6 +170,8 @@ export function classifyColumn(column: Column, rows: Record<string, CellValue>[]
     if (nearlyUnique) { idScore += 0.35; signals.push(`${Math.round(uniquePct * 100)}% of values are unique`); }
     if (sequential) { idScore += 0.2; signals.push("values increase in a near-sequential run"); }
     if (numeric && nameLooksId && (column.stats.std ?? 0) === 0) idScore += 0.05;
+    // Decimal values (prices, rates, amounts) are never identifiers unless the name says so.
+    if (column.type === "float" && !nameLooksId) idScore = 0;
     if (idScore >= 0.5) {
       return build(
         "identifier",
