@@ -47,7 +47,7 @@ export function parseDateSmart(v: CellValue, dayFirst: boolean): string | null {
     return dayFirst ? iso(+m[3], b, a) : iso(+m[3], a, b);
   }
   m = /^(\d{1,2})(?:st|nd|rd|th)?[\s\-/.,]+([a-z]+)[\s\-/.,]+(\d{2,4})$/i.exec(s);
-  if (m && MONTHS[m[2].slice(0, 4).toLowerCase()] ?? MONTHS[m[2].slice(0, 3).toLowerCase()])
+  if (m && MONTHS[m[2].slice(0, 3).toLowerCase()])
     return iso(+m[3], MONTHS[m[2].slice(0, 3).toLowerCase()], +m[1]);
   m = /^([a-z]+)[\s\-/.]+(\d{1,2})(?:st|nd|rd|th)?,?[\s\-/.]+(\d{2,4})$/i.exec(s);
   if (m && MONTHS[m[1].slice(0, 3).toLowerCase()]) return iso(+m[3], MONTHS[m[1].slice(0, 3).toLowerCase()], +m[2]);
