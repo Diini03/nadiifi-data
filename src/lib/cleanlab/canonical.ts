@@ -70,6 +70,18 @@ function editDistance(a: string, b: string, max: number): number {
   return prev[b.length];
 }
 
+const ENDINGS = ["", "s", "es", "ies", "y", "ing", "ed", "e", "er", "ers"];
+/** True when two words share a 5+ letter stem and differ only by a common ending. */
+function sameStem(a: string, b: string): boolean {
+  if (a === b || !/^[a-z]+$/.test(a) || !/^[a-z]+$/.test(b)) return false;
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  for (let k = i; k >= 5; k--) {
+    if (ENDINGS.includes(a.slice(k)) && ENDINGS.includes(b.slice(k))) return true;
+  }
+  return false;
+}
+
 /** Allowed typo distance for a label of this length. Short codes never fuzzy-match. */
 function typoBudget(len: number): number {
   if (len >= 8) return 2;
@@ -108,6 +120,10 @@ export function buildCanonicalMap(values: Iterable<CellValue>): Map<string, stri
   // --- pass 3: fuzzy merge of tokens onto dominant tokens -------------------
   // Only for columns that behave like categories (few distinct values).
   const alias = new Map<string, string>(); // token -> target token
+  // tokens like "Product A" / "Zone 2" end in a standalone code: never typo-merge
+  const coded = new Set<string>();
+  for (const [token, bucket] of counts)
+    for (const raw of bucket.keys()) if (/[\s\-_]\w{1,2}$|\d/.test(raw)) coded.add(token);
   if (!preFamily && tokenList.length > 1 && tokenList.length <= 40) {
     const ranked = [...tokenCount.entries()].sort(
       (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
@@ -127,12 +143,18 @@ export function buildCanonicalMap(values: Iterable<CellValue>): Map<string, stri
         const prefixMatch = short && target.startsWith(token);
         const budget = Math.min(typoBudget(token.length), typoBudget(target.length));
         // a misspelling is rare relative to the correct spelling
+        const dist = budget > 0 ? editDistance(token, target, budget) : 99;
         const typoMatch =
-          budget > 0 && count <= targetCount * 0.4 && editDistance(token, target, budget) <= budget;
+          !coded.has(token) && !coded.has(target) &&
+          ((budget > 0 && count <= targetCount * 0.4 && dist <= budget) ||
+            // a single-letter slip in a longer word (Mogadisho / Mogadishu)
+            (Math.min(token.length, target.length) >= 6 && dist <= 1));
+        // same word stem with a different ending (grocery / groceries, clothes / clothing)
+        const stemMatch = !coded.has(token) && !coded.has(target) && sameStem(token, target);
         // a plural/singular pair of the same word
         const pluralMatch =
           target === `${token}s` || token === `${target}s`;
-        if (prefixMatch || typoMatch || pluralMatch) {
+        if (prefixMatch || typoMatch || pluralMatch || stemMatch) {
           alias.set(token, resolve(target));
           break;
         }

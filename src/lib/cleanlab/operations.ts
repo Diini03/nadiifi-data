@@ -2,6 +2,11 @@ import type { CellValue, Dataset, Operation } from "./types";
 import { coerceNumber, isNullish } from "./infer";
 import { buildCanonicalMap, canonicalLabel } from "./canonical";
 import { reprofile } from "./profile";
+import { detectDayFirst, parseDateSmart } from "./dates";
+
+export function rowKey(r: Record<string, CellValue>): string {
+  return JSON.stringify(Object.keys(r).sort().map((k) => { const v = r[k]; return isNullish(v) ? null : String(v).trim().replace(/\s+/g, " ").toLowerCase(); }));
+}
 
 function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -14,7 +19,7 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
     case "remove_duplicates": {
       const seen = new Set<string>();
       rows = rows.filter((r) => {
-        const k = JSON.stringify(r);
+        const k = rowKey(r);
         if (seen.has(k)) return false;
         seen.add(k);
         return true;
@@ -106,13 +111,10 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
       break;
     }
     case "parse_date": {
+      const dayFirst = detectDayFirst(rows.map((r) => r[op.column]));
       rows = rows.map((r) => {
-        const v = r[op.column];
-        if (v == null) return r;
-        const d = new Date(String(v));
-        return Number.isNaN(d.getTime())
-          ? r
-          : { ...r, [op.column]: d.toISOString().slice(0, 10) };
+        const p = parseDateSmart(r[op.column], dayFirst);
+        return p === null ? r : { ...r, [op.column]: p };
       });
       break;
     }
@@ -152,6 +154,18 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
           return n === null || Math.abs((n - mean) / std) <= 3;
         });
       }
+      break;
+    }
+    case "dedupe_by_key": {
+      const seen = new Set<string>();
+      rows = rows.filter((r) => {
+        const v = r[op.column];
+        if (isNullish(v)) return true;
+        const k = String(v).trim().toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
       break;
     }
     case "drop_empty_rows": {
@@ -214,8 +228,9 @@ export function operationLabel(op: Operation): string {
     case "remove_extra_spaces": return `Collapse spaces in ${op.column}`;
     case "standardize_categories": return `Standardize categories in ${op.column}`;
     case "map_values": return `Rename ${Object.keys(op.mapping).length} values in ${op.column}`;
-    case "parse_date": return `Parse dates in ${op.column}`;
+    case "parse_date": return `Standardize dates in ${op.column}`;
     case "remove_outliers": return `Remove ${op.method.toUpperCase()} outliers in ${op.column}`;
+    case "dedupe_by_key": return `Keep first row per ${op.column}`;
     case "drop_empty_rows": return "Drop empty rows";
     case "drop_empty_columns": return "Drop empty columns";
     case "drop_duplicate_columns": return "Drop duplicate columns";

@@ -9,6 +9,7 @@ import { EmptyDropzone } from "@/components/workspace/EmptyDropzone";
 import { InspectingOverlay } from "@/components/workspace/InspectingOverlay";
 import { InspectionPanel } from "@/components/workspace/InspectionPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
+import { BlankFillReview } from "@/components/workspace/BlankFillReview";
 import { CategoryOverrides } from "@/components/workspace/CategoryOverrides";
 import { ExportPanel } from "@/components/workspace/ExportPanel";
 import { InsightsView } from "@/components/workspace/InsightsView";
@@ -77,7 +78,10 @@ export default function Home() {
   const addDataset = useDatasetStore((s) => s.addDataset);
   const logExport = useDatasetStore((s) => s.logExport);
 
-  const issues: Issue[] = useMemo(() => (dataset ? detectIssues(dataset) : []), [dataset]);
+  const issues: Issue[] = useMemo(
+    () => (dataset ? detectIssues(dataset).filter((i) => i.type !== "missing") : []),
+    [dataset],
+  );
 
   useEffect(() => {
     if (step === "clean" && dataset) {
@@ -270,6 +274,7 @@ export default function Home() {
               />
             </div>
           )}
+          <BlankFillReview dataset={dataset} onApply={applyManual} />
           <CategoryOverrides dataset={dataset} onApply={applyManual} />
           {stage === "cleaned" && <DatasetTable dataset={dataset} />}
         </div>
