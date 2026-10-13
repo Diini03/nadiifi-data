@@ -1,5 +1,7 @@
 import type { Dataset, Issue } from "./types";
 import { coerceNumber, isNullish } from "./infer";
+import { rowKey } from "./operations";
+import { dateFormatOf, detectDayFirst, parseDateSmart } from "./dates";
 import { buildCanonicalMap, canonicalMergeCount, canonicalGroups } from "./canonical";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,7 +21,7 @@ export function detectIssues(ds: Dataset): Issue[] {
   // ---- duplicate rows
   const seen = new Map<string, number>();
   for (const r of ds.rows) {
-    const k = JSON.stringify(r);
+    const k = rowKey(r);
     seen.set(k, (seen.get(k) ?? 0) + 1);
   }
   const dupCount = [...seen.values()].reduce((s, c) => s + (c > 1 ? c - 1 : 0), 0);
@@ -28,12 +30,45 @@ export function detectIssues(ds: Dataset): Issue[] {
       id: "dup",
       type: "duplicates",
       title: `${dupCount} duplicate rows`,
-      description: `${dupCount} exact duplicate rows in the dataset.`,
+      description: `${dupCount} rows repeat another row (ignoring spaces and capitalization).`,
       severity: "warning",
       recommendation: "Remove duplicate rows to avoid biased analytics.",
       op: { kind: "remove_duplicates" },
       count: dupCount,
     });
+  }
+
+  // ---- repeated order / record IDs
+  if (dupCount === 0 || true) {
+    const keyCol = ds.columns.find((c) =>
+      /(^|[_\s-])(order|invoice|transaction|txn|receipt|record)?[_\s-]?(id|no|number|num|code)$/i.test(c.name) &&
+      /order|invoice|transaction|txn|receipt|record|^id$/i.test(c.name) &&
+      c.stats.unique / Math.max(1, ds.rows.length - c.stats.missing) > 0.5,
+    );
+    if (keyCol) {
+      const counts = new Map<string, number>();
+      for (const r of ds.rows) {
+        const v = r[keyCol.name];
+        if (isNullish(v)) continue;
+        const k = String(v).trim().toLowerCase();
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+      const repeats = [...counts.entries()].filter(([, n]) => n > 1);
+      const extra = repeats.reduce((s, [, n]) => s + n - 1, 0);
+      if (extra > dupCount) {
+        issues.push({
+          id: `dupkey:${keyCol.name}`,
+          column: keyCol.name,
+          type: "duplicate_keys",
+          title: `${extra} repeated ${keyCol.name} values`,
+          description: `${repeats.length} IDs appear more than once, e.g. ${repeats.slice(0, 3).map(([k]) => `"${k}"`).join(", ")}. Totals would be double-counted.`,
+          severity: "warning",
+          recommendation: `Keep the first row for each ${keyCol.name}.`,
+          op: { kind: "dedupe_by_key", column: keyCol.name },
+          count: extra,
+        });
+      }
+    }
   }
 
   // ---- empty rows
@@ -171,7 +206,33 @@ export function detectIssues(ds: Dataset): Issue[] {
       }
     }
 
-    if (col.type === "date") {
+    {
+      const vals = ds.rows.map((r) => r[col.name]).filter((v) => !isNullish(v));
+      const fmts = new Map<string, number>();
+      let dated = 0;
+      for (const v of vals) { const f = dateFormatOf(v); if (f) { dated++; fmts.set(f, (fmts.get(f) ?? 0) + 1); } }
+      const isDateCol = vals.length > 0 && (dated / vals.length > 0.6 || (/date|day|time/i.test(col.name) && dated / vals.length > 0.3));
+      if (isDateCol) {
+        const dayFirst = detectDayFirst(vals);
+        const unparsable = vals.filter((v) => parseDateSmart(v, dayFirst) === null).length;
+        const nonIso = vals.filter((v) => typeof v === "string" ? !/^\d{4}-\d{2}-\d{2}$/.test(v.trim()) : true).length;
+        if (fmts.size > 1 || nonIso > 0) {
+          issues.push({
+            id: `mixdate:${col.name}`,
+            column: col.name,
+            type: "mixed_dates",
+            title: fmts.size > 1 ? `${fmts.size} date formats mixed in "${col.name}"` : `Non-standard dates in "${col.name}"`,
+            description: `${nonIso - unparsable} values will be rewritten as YYYY-MM-DD (read as ${dayFirst ? "day/month" : "month/day"}).${unparsable ? ` ${unparsable} can't be read and stay as-is.` : ""}`,
+            severity: fmts.size > 1 ? "warning" : "info",
+            recommendation: "Standardize every date to YYYY-MM-DD so time charts sort correctly.",
+            op: { kind: "parse_date", column: col.name },
+            count: nonIso,
+          });
+        }
+      }
+    }
+
+    if (col.type === "date" && false) {
       const invalid = ds.rows.filter((r) => {
         const v = r[col.name];
         if (isNullish(v)) return false;

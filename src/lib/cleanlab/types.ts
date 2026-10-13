@@ -79,6 +79,7 @@ export type Operation =
   | { kind: "map_values"; column: string; mapping: Record<string, string> }
   | { kind: "parse_date"; column: string }
   | { kind: "remove_outliers"; column: string; method: "iqr" | "zscore" }
+  | { kind: "dedupe_by_key"; column: string }
   | { kind: "drop_empty_rows" }
   | { kind: "drop_empty_columns" }
   | { kind: "drop_duplicate_columns" };
