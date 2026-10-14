@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
         ...(runId ? { "X-Lovable-AIG-Run-ID": runId } : {}),
       },
       body: JSON.stringify({
-        model: "openai/gpt-6-astra",
+        model: "openai/gpt-6.1-sol",
         instructions: system,
         input: user,
         stream: true,
