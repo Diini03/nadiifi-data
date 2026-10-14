@@ -2,7 +2,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 
 const Body = z.object({
-  mode: z.enum(["summary", "suggest", "explain"]),
+  mode: z.enum(["summary", "suggest", "explain", "clean"]),
   digest: z.unknown(),
   issue: z.string().max(2000).optional(),
 });
@@ -29,6 +29,8 @@ Deno.serve(async (req) => {
     const system =
       mode === "summary"
         ? "You are a senior data analyst. Given a compact JSON profile of a dataset (column names, types, semantic roles such as identifier/measure/dimension/datetime with confidence, recommended and avoided uses, and statistics only), write a plain-English briefing. Format exactly: a 2-3 sentence overview paragraph, then a line 'Key findings:' followed by 3-4 lines starting with '- ', then a line 'Next steps:' followed by 2-3 lines starting with '- '. Keep it under 200 words. Use the semantic roles: never treat identifiers as measures, and recommend analyses that fit each role. Only state facts supported by the profile. No markdown headings or bold."
+        : mode === "clean"
+        ? "You are a data-cleaning coach. Given a JSON list of pending cleaning steps (category merges with their variants, blank-cell fills with method, value and confidence, date fixes and duplicate removals) plus column stats, explain in plain English what each step will change and why it is safe or risky. Format exactly: a 1-2 sentence overview, then 'Merges:' with lines starting '- ', then 'Fills:' with lines starting '- ' (mention confidence and when to prefer a custom value), then 'Other fixes:' with lines starting '- ' if any. Under 220 words. Only use facts in the input. No markdown headings or bold."
         : mode === "suggest"
         ? "You are a data-cleaning expert. Given a dataset profile with detected issues, output an ordered, actionable list (max 6 items) of cleaning operations, each with a one-line justification. Numbered list. No preamble."
         : "You are a data quality expert. Explain the given data issue in 2-3 short sentences and suggest one concrete fix. Plain text.";

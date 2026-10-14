@@ -9,6 +9,7 @@ import { EmptyDropzone } from "@/components/workspace/EmptyDropzone";
 import { InspectingOverlay } from "@/components/workspace/InspectingOverlay";
 import { InspectionPanel } from "@/components/workspace/InspectionPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
+import { CleanBriefing } from "@/components/workspace/CleanBriefing";
 import { BlankFillReview } from "@/components/workspace/BlankFillReview";
 import { CategoryOverrides } from "@/components/workspace/CategoryOverrides";
 import { ExportPanel } from "@/components/workspace/ExportPanel";
@@ -274,6 +275,7 @@ export default function Home() {
               />
             </div>
           )}
+          <CleanBriefing dataset={dataset} />
           <BlankFillReview dataset={dataset} onApply={applyManual} />
           <CategoryOverrides dataset={dataset} onApply={applyManual} />
           {stage === "cleaned" && <DatasetTable dataset={dataset} />}

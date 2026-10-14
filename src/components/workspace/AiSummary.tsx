@@ -33,8 +33,8 @@ function buildDigest(ds: Dataset) {
 
 const cache = new Map<string, string>();
 
-export function AiSummary({ dataset }: { dataset: Dataset }) {
-  const key = `${dataset.id}:${dataset.updatedAt}:${dataset.rows.length}`;
+export function AiSummary({ dataset, mode = "summary", digest, title = "AI briefing", subtitle }: { dataset: Dataset; mode?: "summary" | "clean"; digest?: () => unknown; title?: string; subtitle?: string }) {
+  const key = `${mode}:${dataset.id}:${dataset.updatedAt}:${dataset.rows.length}`;
   const [text, setText] = useState<string | null>(cache.get(key) ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export function AiSummary({ dataset }: { dataset: Dataset }) {
     setLoading(true);
     setError(null);
     const { data, error: err } = await supabase.functions.invoke("ai-assist", {
-      body: { mode: "summary", digest: buildDigest(dataset) },
+      body: { mode, digest: digest ? digest() : buildDigest(dataset) },
     });
     setLoading(false);
     if (err || !data?.text) {
@@ -71,9 +71,9 @@ export function AiSummary({ dataset }: { dataset: Dataset }) {
           <Sparkles className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-[15px] font-semibold">AI briefing</h2>
+          <h2 className="font-display text-[15px] font-semibold">{title}</h2>
           <p className="text-[12.5px] text-muted-foreground">
-            Plain-English findings and next steps. Only column statistics are sent — never your rows.
+            {subtitle ?? "Plain-English findings and next steps. Only column statistics are sent — never your rows."}
           </p>
         </div>
         <Button size="sm" variant={text ? "outline" : "default"} className="h-8 text-[13px]" onClick={run} disabled={loading}>

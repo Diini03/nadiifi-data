@@ -19,6 +19,30 @@ function fillValue(ds: Dataset, column: string, s: Strategy, constant: string): 
   return null;
 }
 
+export function fillConfidence(ds: Dataset, column: string, s: Strategy): { score: number; reason: string } {
+  const col = ds.columns.find((c) => c.name === column);
+  if (!col) return { score: 0, reason: "" };
+  const st = col.stats;
+  const gapPenalty = Math.min(50, st.missingPct * 1.2);
+  let base = 70;
+  let reason = "";
+  if (s === "constant") return { score: 50, reason: "Your own value — reliability depends on what you know about the data." };
+  if (s === "median" || s === "mean") {
+    const spread = st.mean && st.std ? Math.abs(st.std / st.mean) : 1;
+    const skew = st.mean !== undefined && st.median !== undefined && st.std ? Math.abs(st.mean - st.median) / st.std : 0;
+    base = 95 - Math.min(35, spread * 30) - (s === "mean" ? Math.min(20, skew * 60) : 0) - Math.min(10, (st.outliersIQR ?? 0) / Math.max(1, ds.rows.length) * 100);
+    reason = spread < 0.3 ? "Values are tightly clustered, so the fill is close to most real values." : "Values vary a lot, so the fill may be far from the true value.";
+    if (s === "mean" && skew > 0.2) reason += " Skewed data pulls the average — the middle value is safer.";
+  } else {
+    const filled = ds.rows.length - st.missing || 1;
+    const share = (st.top[0]?.count ?? 0) / filled;
+    base = 30 + share * 65;
+    reason = `The most common value covers ${Math.round(share * 100)}% of filled cells.`;
+  }
+  if (st.missingPct > 20) reason += ` ${st.missingPct.toFixed(0)}% of the column is blank, which lowers trust.`;
+  return { score: Math.max(5, Math.min(99, Math.round(base - gapPenalty))), reason };
+}
+
 export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onApply: (op: Operation) => void }) {
   const cols = useMemo(
     () => dataset.columns.filter((c) => c.stats.missing > 0 && c.stats.missingPct < 100),
@@ -51,6 +75,8 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
           const numeric = col.type === "integer" || col.type === "float";
           const s: Strategy = choice[col.name] ?? (numeric ? "median" : "mode");
           const value = fillValue(dataset, col.name, s, constants[col.name] ?? "");
+          const conf = fillConfidence(dataset, col.name, s);
+          const tone = conf.score >= 75 ? "bg-success/15 text-success" : conf.score >= 50 ? "bg-warning/15 text-warning" : "bg-destructive/15 text-destructive";
           const ctx = firstOther(col.name);
           const sample = dataset.rows.filter((r) => isNullish(r[col.name])).slice(0, 3);
           return (
@@ -59,6 +85,9 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
                 <span className="font-mono text-[13px] font-medium">{col.name}</span>
                 <span className="text-[12px] text-muted-foreground">
                   {col.stats.missing} blank ({col.stats.missingPct.toFixed(1)}%)
+                </span>
+                <span title={conf.reason} className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`} aria-label={`Confidence ${conf.score}%`}>
+                  {conf.score}% confidence
                 </span>
                 <div className="ml-auto flex flex-wrap items-center gap-2">
                   <Select value={s} onValueChange={(v) => setChoice((c) => ({ ...c, [col.name]: v as Strategy }))}>
@@ -97,6 +126,7 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
                 </div>
               </div>
 
+              <p className="mt-2 text-[12px] text-muted-foreground">{conf.reason}</p>
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-[12px]">
                   <thead className="text-muted-foreground">
