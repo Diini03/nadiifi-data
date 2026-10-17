@@ -10,8 +10,11 @@ import { InspectingOverlay } from "@/components/workspace/InspectingOverlay";
 import { InspectionPanel } from "@/components/workspace/InspectionPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
 import { CleanBriefing } from "@/components/workspace/CleanBriefing";
+import { CleanSuggestions } from "@/components/workspace/CleanSuggestions";
 import { BlankFillReview } from "@/components/workspace/BlankFillReview";
 import { CategoryOverrides } from "@/components/workspace/CategoryOverrides";
+import { DuplicateReview } from "@/components/workspace/DuplicateReview";
+import { DatasetBuilder } from "@/components/workspace/DatasetBuilder";
 import { ExportPanel } from "@/components/workspace/ExportPanel";
 import { InsightsView } from "@/components/workspace/InsightsView";
 import { KpiStrip } from "@/components/workspace/KpiStrip";
@@ -29,7 +32,7 @@ import { detectIssues } from "@/lib/cleanlab/issues";
 import { applyOperation, operationLabel } from "@/lib/cleanlab/operations";
 import { exportCSV } from "@/lib/cleanlab/exporters";
 import { buildSampleFile } from "@/lib/cleanlab/sample";
-import type { Dataset, Issue, Operation } from "@/lib/cleanlab/types";
+import type { CellValue, Dataset, Issue, Operation } from "@/lib/cleanlab/types";
 import { useDatasetStore } from "@/store/useDatasetStore";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { upsertSavedDataset, loadSavedDataset } from "@/lib/cloud/datasets";
@@ -128,6 +131,20 @@ export default function Home() {
       toast.error("Could not read that file.");
       setStage("empty");
     }
+  };
+
+  const openBuilt = (name: string, rows: Record<string, CellValue>[]) => {
+    const ds = profileDataset(name, rows, 0);
+    setDataset(ds);
+    setUndoStack([]);
+    setLastAction(null);
+    setCleanResult(null);
+    setStage("ready");
+    setStep("clean");
+    addDataset(ds).catch(() => {});
+    syncCloud(ds);
+    toast.success(`${ds.rows.length} rows loaded`);
+    scrollToTool();
   };
 
   const runClean = () => {
@@ -276,8 +293,10 @@ export default function Home() {
             </div>
           )}
           <CleanBriefing dataset={dataset} />
+          <CleanSuggestions dataset={dataset} />
           <BlankFillReview dataset={dataset} onApply={applyManual} />
           <CategoryOverrides dataset={dataset} onApply={applyManual} />
+          <DuplicateReview dataset={dataset} onApply={applyManual} />
           {stage === "cleaned" && <DatasetTable dataset={dataset} />}
         </div>
       );
@@ -376,6 +395,10 @@ export default function Home() {
           ) : (
             <>
               <EmptyDropzone onFile={handleFile} onSample={() => handleFile(buildSampleFile())} />
+              <div className="mt-6 flex items-center justify-center gap-3 text-[12px] text-muted-foreground">
+                <span>or</span>
+                <DatasetBuilder onBuild={openBuilt} />
+              </div>
               {user && (
                 <div className="mt-8">
                   <CloudLibrary currentId={null} onOpen={openFromCloud} refreshToken={libraryVersion} />

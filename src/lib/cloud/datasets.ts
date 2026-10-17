@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Dataset } from "@/lib/cleanlab/types";
+import { encryptPayload, decryptPayload } from "./crypto";
 
 export interface SavedDatasetRow {
   id: string;
@@ -27,10 +28,15 @@ export async function loadSavedDataset(id: string): Promise<Dataset | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return (data?.payload as unknown as Dataset) ?? null;
+  if (!data?.payload) return null;
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  const payload = userId ? await decryptPayload(userId, data.payload) : data.payload;
+  return (payload as unknown as Dataset) ?? null;
 }
 
 export async function upsertSavedDataset(userId: string, ds: Dataset): Promise<void> {
+  const payload = await encryptPayload(userId, ds);
   const { error } = await supabase.from("saved_datasets").upsert(
     {
       id: ds.id,
@@ -40,7 +46,7 @@ export async function upsertSavedDataset(userId: string, ds: Dataset): Promise<v
       row_count: ds.rows.length,
       column_count: ds.columns.length,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload: ds as any,
+      payload: payload as any,
     },
     { onConflict: "id" },
   );

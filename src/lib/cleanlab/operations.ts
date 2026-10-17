@@ -168,6 +168,11 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
       });
       break;
     }
+    case "delete_rows": {
+      const drop = new Set(op.indices);
+      rows = rows.filter((_, i) => !drop.has(i));
+      break;
+    }
     case "drop_empty_rows": {
       rows = rows.filter((r) => Object.values(r).some((v) => !isNullish(v)));
       break;
@@ -231,6 +236,7 @@ export function operationLabel(op: Operation): string {
     case "parse_date": return `Standardize dates in ${op.column}`;
     case "remove_outliers": return `Remove ${op.method.toUpperCase()} outliers in ${op.column}`;
     case "dedupe_by_key": return `Keep first row per ${op.column}`;
+    case "delete_rows": return `Delete ${op.indices.length} row${op.indices.length === 1 ? "" : "s"}`;
     case "drop_empty_rows": return "Drop empty rows";
     case "drop_empty_columns": return "Drop empty columns";
     case "drop_duplicate_columns": return "Drop duplicate columns";

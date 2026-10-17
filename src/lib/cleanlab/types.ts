@@ -80,6 +80,7 @@ export type Operation =
   | { kind: "parse_date"; column: string }
   | { kind: "remove_outliers"; column: string; method: "iqr" | "zscore" }
   | { kind: "dedupe_by_key"; column: string }
+  | { kind: "delete_rows"; indices: number[] }
   | { kind: "drop_empty_rows" }
   | { kind: "drop_empty_columns" }
   | { kind: "drop_duplicate_columns" };
