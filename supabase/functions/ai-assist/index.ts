@@ -2,7 +2,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 
 const Body = z.object({
-  mode: z.enum(["summary", "suggest", "explain", "clean"]),
+  mode: z.enum(["summary", "suggest", "explain", "clean", "prioritize"]),
   digest: z.unknown(),
   issue: z.string().max(2000).optional(),
 });
@@ -33,6 +33,8 @@ Deno.serve(async (req) => {
         ? "You are a data-cleaning coach. Given a JSON list of pending cleaning steps (category merges with their variants, blank-cell fills with method, value and confidence, date fixes and duplicate removals) plus column stats, explain in plain English what each step will change and why it is safe or risky. Format exactly: a 1-2 sentence overview, then 'Merges:' with lines starting '- ', then 'Fills:' with lines starting '- ' (mention confidence and when to prefer a custom value), then 'Other fixes:' with lines starting '- ' if any. Under 220 words. Only use facts in the input. No markdown headings or bold."
         : mode === "suggest"
         ? "You are a data-cleaning expert. Given a dataset profile with detected issues, output an ordered, actionable list (max 6 items) of cleaning operations, each with a one-line justification. Numbered list. No preamble."
+        : mode === "prioritize"
+        ? "You are a data-cleaning strategist. Given a JSON summary of pending cleaning actions (category merges, blank-cell fills with method and confidence, date standardization, duplicate removals) plus column stats, recommend the order to apply them and which to review or skip, with a one-line reason each. Format exactly: a 1-2 sentence overview, then a line 'Apply in this order:' followed by numbered lines '1. ' '2. ' etc., then a line 'Review or skip:' followed by lines starting '- ' if any. Under 200 words. Only use facts in the input. No markdown headings or bold."
         : "You are a data quality expert. Explain the given data issue in 2-3 short sentences and suggest one concrete fix. Plain text.";
 
     const user = mode === "explain" ? `Issue: ${issue ?? ""}\nContext:\n${digestStr}` : digestStr;

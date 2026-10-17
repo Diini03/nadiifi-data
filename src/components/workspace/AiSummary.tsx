@@ -33,7 +33,7 @@ function buildDigest(ds: Dataset) {
 
 const cache = new Map<string, string>();
 
-export function AiSummary({ dataset, mode = "summary", digest, title = "AI briefing", subtitle }: { dataset: Dataset; mode?: "summary" | "clean"; digest?: () => unknown; title?: string; subtitle?: string }) {
+export function AiSummary({ dataset, mode = "summary", digest, title = "AI briefing", subtitle }: { dataset: Dataset; mode?: "summary" | "clean" | "prioritize"; digest?: () => unknown; title?: string; subtitle?: string }) {
   const key = `${mode}:${dataset.id}:${dataset.updatedAt}:${dataset.rows.length}`;
   const [text, setText] = useState<string | null>(cache.get(key) ?? null);
   const [loading, setLoading] = useState(false);
