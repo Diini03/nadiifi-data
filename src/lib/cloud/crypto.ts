@@ -8,9 +8,9 @@ function bytesToB64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 
-function b64ToBytes(b64: string): Uint8Array {
+function b64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
   const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
+  const out = new Uint8Array(new ArrayBuffer(bin.length));
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
@@ -25,7 +25,7 @@ async function getKey(userId: string): Promise<CryptoKey> {
     .eq("user_id", userId)
     .maybeSingle();
 
-  let raw: Uint8Array;
+  let raw: Uint8Array<ArrayBuffer>;
   if (data?.key) {
     raw = b64ToBytes(data.key);
   } else {
