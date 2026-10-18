@@ -134,7 +134,7 @@ export default function Home() {
   };
 
   const openBuilt = (name: string, rows: Record<string, CellValue>[]) => {
-    const ds = profileDataset(name, rows, 0);
+    const ds = profileDataset(name, rows, new Blob([JSON.stringify(rows)]).size);
     setDataset(ds);
     setUndoStack([]);
     setLastAction(null);
