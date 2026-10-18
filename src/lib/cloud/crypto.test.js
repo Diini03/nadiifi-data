@@ -1,12 +1,12 @@
 import { beforeEach, expect, mock, test } from "bun:test";
 
-const keys = new Map<string, string>();
+const keys = new Map();
 let readFailure = false;
 mock.module("@/integrations/supabase/client", () => ({
   supabase: {
     from: () => ({
       select: () => ({
-        eq: (_column: string, id: string) => {
+        eq: (_column, id) => {
           const read = async () => ({
             data: keys.has(id) ? { key: keys.get(id) } : null,
             error: readFailure ? new Error("Key read failed") : null,
@@ -14,7 +14,7 @@ mock.module("@/integrations/supabase/client", () => ({
           return { maybeSingle: read, single: read };
         },
       }),
-      upsert: async (row: { user_id: string; key: string }, options: { ignoreDuplicates?: boolean }) => {
+      upsert: async (row, options) => {
         if (!options.ignoreDuplicates || !keys.has(row.user_id)) keys.set(row.user_id, row.key);
         return { error: null };
       },
