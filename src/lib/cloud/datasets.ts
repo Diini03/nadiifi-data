@@ -24,14 +24,26 @@ export async function listSavedDatasets(): Promise<SavedDatasetRow[]> {
 export async function loadSavedDataset(id: string): Promise<Dataset | null> {
   const { data, error } = await supabase
     .from("saved_datasets")
-    .select("payload")
+    .select("payload,updated_at")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   if (!data?.payload) return null;
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
   const userId = auth.user?.id;
-  const payload = userId ? await decryptPayload(userId, data.payload) : data.payload;
+  if (!userId) throw new Error("Sign in to unlock your saved dataset.");
+  const payload = await decryptPayload(userId, data.payload);
+  // Upgrade older saves in the browser without changing their rows or overwriting newer edits.
+  if (typeof data.payload !== "string" || !data.payload.startsWith("enc:v1:")) {
+    const encrypted = await encryptPayload(userId, payload);
+    const { error: upgradeError } = await supabase
+      .from("saved_datasets")
+      .update({ payload: encrypted })
+      .eq("id", id)
+      .eq("updated_at", data.updated_at);
+    if (upgradeError) throw upgradeError;
+  }
   return (payload as unknown as Dataset) ?? null;
 }
 
