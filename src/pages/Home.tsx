@@ -83,13 +83,13 @@ export default function Home() {
   const logExport = useDatasetStore((s) => s.logExport);
 
   const issues: Issue[] = useMemo(
-    () => (dataset ? detectIssues(dataset).filter((i) => i.type !== "missing") : []),
+    () => (dataset ? detectIssues(dataset).filter((i) => i.type !== "missing" && i.type !== "duplicates") : []),
     [dataset],
   );
 
   useEffect(() => {
     if (step === "clean" && dataset) {
-      setSelected(new Set(issues.filter((i) => i.op).map((i) => i.id)));
+      setSelected(new Set(issues.filter((i) => i.op && i.type !== "duplicate_keys").map((i) => i.id)));
     }
   }, [step, dataset, issues]);
 

@@ -66,35 +66,65 @@ export function DuplicateReview({ dataset, onApply }: Props) {
       </p>
 
       <div className="space-y-3">
-        {shown.map((g, gi) => (
-          <div key={gi} className="rounded-lg border border-border/60">
-            <p className="border-b border-border/60 bg-muted/30 px-3 py-1.5 text-[11.5px] font-medium text-muted-foreground">
-              Group {gi + 1} — {g.length} identical rows (rows {g.map((i) => i + 1).join(", ")})
-            </p>
-            <ul className="divide-y divide-border/50">
-              {g.map((idx) => {
-                const del = isMarked(gi, idx, g[0]);
-                return (
-                  <li key={idx} className="flex items-center gap-3 px-3 py-1.5">
-                    <Checkbox
-                      checked={del}
-                      onCheckedChange={() => toggle(gi, idx, g[0])}
-                      aria-label={del ? "Keep this row" : "Delete this row"}
-                    />
-                    <span className="w-14 shrink-0 text-[11px] text-muted-foreground">Row {idx + 1}</span>
-                    <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-muted-foreground">
-                      {previewCols.map((c) => String(dataset.rows[idx]?.[c] ?? "—")).join(" · ")}
-                      {dataset.columns.length > previewCols.length ? " · …" : ""}
-                    </span>
-                    <span className={del ? "text-[11px] font-medium text-destructive" : "text-[11px] font-medium text-primary"}>
-                      {del ? "Delete" : "Keep"}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        {shown.map((g, gi) => {
+          const cols = dataset.columns.map((c) => c.name);
+          const differs = (c: string) =>
+            new Set(g.map((idx) => String(dataset.rows[idx]?.[c] ?? ""))).size > 1;
+          const keptCount = g.filter((idx) => !isMarked(gi, idx, g[0])).length;
+          return (
+            <div key={gi} className="rounded-lg border border-border/60">
+              <p className="border-b border-border/60 bg-muted/30 px-3 py-1.5 text-[11.5px] font-medium text-muted-foreground">
+                Group {gi + 1} — {g.length} matching rows (rows {g.map((i) => i + 1).join(", ")})
+                {keptCount === 0 && (
+                  <span className="ml-2 font-semibold text-destructive">Warning: every row in this group will be deleted</span>
+                )}
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11.5px]">
+                  <thead>
+                    <tr className="border-b border-border/50 text-left text-muted-foreground">
+                      <th className="px-3 py-1.5 font-medium">Choice</th>
+                      <th className="px-2 py-1.5 font-medium">Row</th>
+                      {cols.map((c) => (
+                        <th key={c} className={`whitespace-nowrap px-2 py-1.5 font-medium ${differs(c) ? "text-primary" : ""}`}>
+                          {c}{differs(c) ? " *" : ""}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {g.map((idx) => {
+                      const del = isMarked(gi, idx, g[0]);
+                      return (
+                        <tr key={idx} className={del ? "bg-destructive/5" : ""}>
+                          <td className="px-3 py-1.5">
+                            <div className="flex gap-1">
+                              <Button size="sm" variant={del ? "outline" : "default"} className="h-6 px-2 text-[11px]"
+                                onClick={() => del && toggle(gi, idx, g[0])}>Keep</Button>
+                              <Button size="sm" variant={del ? "destructive" : "outline"} className="h-6 px-2 text-[11px]"
+                                onClick={() => !del && toggle(gi, idx, g[0])}>Delete</Button>
+                            </div>
+                          </td>
+                          <td className="px-2 py-1.5 text-muted-foreground">{idx + 1}</td>
+                          {cols.map((c) => (
+                            <td key={c} className={`whitespace-nowrap px-2 py-1.5 font-mono ${differs(c) ? "font-semibold text-primary" : "text-muted-foreground"}`}>
+                              {String(dataset.rows[idx]?.[c] ?? "—")}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {cols.some(differs) && (
+                <p className="border-t border-border/50 px-3 py-1.5 text-[11px] text-muted-foreground">
+                  * Highlighted columns differ in spacing or case — check before deleting.
+                </p>
+              )}
+            </div>
+          );
+        })}
         {groups.length > MAX_GROUPS && (
           <p className="text-[11.5px] text-muted-foreground">
             …and {groups.length - MAX_GROUPS} more group{groups.length - MAX_GROUPS === 1 ? "" : "s"} with the same default (keep first, delete the rest).
