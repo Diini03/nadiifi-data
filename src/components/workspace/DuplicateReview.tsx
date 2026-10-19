@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { CopyX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import type { Dataset, Operation } from "@/lib/cleanlab/types";
 import { rowKey } from "@/lib/cleanlab/operations";
 
@@ -62,7 +61,7 @@ export function DuplicateReview({ dataset, onApply }: Props) {
         </span>
       </header>
       <p className="mb-3 text-[12.5px] text-muted-foreground">
-        Each group is identical rows. Uncheck a row to keep it, check it to delete it. By default every row after the first is marked for deletion.
+        Each group is identical rows. Every column is shown side by side. Choose Keep or Delete for each row — nothing is removed until you press Delete selected.
       </p>
 
       <div className="space-y-3">
