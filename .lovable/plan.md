@@ -1,94 +1,68 @@
-# Plan: NadiifiData → Full Analytics Workspace
+# Nadiifi: a simpler workflow with trustworthy cleaning and analysis
 
-This is a large upgrade. I'll ship it in **five focused phases** so each stage lands stable and reviewable, rather than one massive rewrite. Every phase produces a working app.
+## Goal
+Make the purpose clear: turn messy tables into reliable findings and useful reports, without silently changing real data. Keep the familiar **Data → Clean → Analyze → Visualize → Export** flow, guest access, and existing dashboard styles.
 
----
+## What the review found
+- Lovable Cloud is already connected and active. Email/password and Google controls, encrypted dataset storage, column understanding, AI briefings, and report templates already exist; extend them rather than replace them.
+- The issue-selection panel is hidden on small screens, and moving between steps currently looks like completing them.
+- Duplicate review still marks rows for deletion by default, including groups not displayed. Repeated order numbers need their own review; matching IDs are not proof that rows should be deleted.
+- Blank fills require approval, but their confidence scores are heuristics, not probabilities of correctness. Approved estimates are not tracked separately in findings.
+- Undo does not save to the cloud. Signing in can interrupt the current table, and there is no persistent saving/retry indicator.
+- Chart rules need corrections: average-based charts can be called “shares,” date buckets depend on local time, and aggregation relies partly on column names.
 
-## Guiding principles
+## 1. Make the next decision obvious
+- Keep upload, typed dataset creation, and sample data as the three entry choices. Show the table name, row count, and current stage together.
+- Use one primary next action per stage: review changes, examine findings, create charts, then export. Allow going back without losing decisions.
+- Track actual work and outstanding review separately from the selected tab; never imply a dataset is clean merely because the user opened Analyze.
+- Make issue selection and review accessible on small screens. Group Clean into **format fixes**, **decisions to review**, and **changes already applied**, instead of stacking competing AI cards and review tools.
+- Consolidate the two Clean AI cards into one on-demand prioritized explanation; keep deterministic previews authoritative.
+- Use truthful privacy wording: processing stays in the browser; signed-in cloud saves contain encrypted rows; AI receives a limited summary, not the complete table.
 
-- Keep the current desktop-style shell (icon rail · top command bar · main workspace · right panel · status bar). Extend it, don't replace it.
-- Everything runs **in-browser** by default (Papaparse / SheetJS, Zustand, IndexedDB). Cloud/auth is additive — guest mode always works.
-- Reuse existing detectors/operations/exporters/i18n. No re-writes where the current module is already correct.
-- Design tokens only. No hardcoded colors. Full EN/SO translation for every new string.
+## 2. Connect sign-in and reliable private saves
+- Verify hosted email/password and provider settings; enable email, managed Google, and Sign in with Lovable where workspace policy permits. Keep confirmation emails and disable anonymous account creation.
+- Preserve the active local dataset, chosen step, and intended same-origin destination through sign-in. Restore only after the session is ready.
+- Add a visible **Local only / Saving / Saved / Save failed** status with retry. Guests can finish the entire workflow without signing in.
+- Centralize and serialize automatic encrypted saves for creation, approved cleaning, edits, and undo so older saves cannot overwrite newer work. Restore the active dataset after a fresh reload.
+- Preserve browser encryption, existing keys, insert-if-absent/read-winning-key creation, and timestamp-guarded legacy upgrades. Never create a replacement key while unlocking data.
+- Verify owner-only access and explain the limit accurately: this is not encryption that prevents the platform itself from decrypting; metadata such as dataset names remains readable.
 
----
+## 3. Make cleaning previewable and reversible
+- Generate previews using the same operations that will be applied: affected rows, original values, proposed values, reason, and risk. Require confirmation before applying the proposed batch.
+- Offer conservative formatting fixes together. Ambiguous spelling merges, invalid/ambiguous dates, blanks, duplicate rows, repeated keys, and any destructive operation remain explicit review decisions.
+- Default every duplicate row to **Keep**. Show all columns, highlight differences, and paginate every group; undisplayed rows must never be marked for deletion. Reset selections safely when data changes.
+- Compare repeated IDs separately from exact/normalized duplicates. Do not assume order numbers are unique: line items can legitimately repeat an order number.
+- Keep blank-fill previews and approval; add **Leave blank**. Label numerical fills as estimates and confidence as a heuristic reliability indicator. Never fill identifier columns automatically.
+- Let users choose day-first/month-first for ambiguous dates. Preserve unparseable originals, show failures, and never treat a column-level score as proof that every date parsed.
+- Revalidate after each operation. Keep a reversible change history with affected row identities, operations, user approvals, and before/after quality; unresolved issues remain visible.
 
-## Phase 1 — Workspace shell & navigation upgrade
+## 4. Build a trustworthy analytical model
+- Separate physical types from meaning: ID, measure, category, and date. Let users correct inferred roles and select aggregation rules.
+- Define sum, average, count, distinct count, and date grain explicitly. Never sum IDs, averages, scores, rates, or prices without a suitable rule.
+- Carry cleaning provenance into Analyze: how many values were estimated, which rows were removed, unresolved dates, exclusions, and sample size.
+- Calculate findings locally from the current approved dataset. Ground AI summaries in those calculations and column roles; distinguish verified findings from suggestions and avoid unsupported causal claims.
 
-Turn the current single-screen workspace into a real multi-view desktop app.
+## 5. Make charts and dashboards genuinely useful
+- Fix correctness first: part-to-whole charts require additive, nonnegative totals; averages use comparison charts and accurate labels. Use stable date buckets with an explicit timezone policy.
+- Add chart controls for dimension, measure, aggregation, date grain, sorting, top categories, and filters with semantic guardrails.
+- Show aggregation, included/excluded row counts, units, and rationale beside each chart. High-cardinality categories use intentional top-N handling with a clearly defined remainder rather than misleading clutter.
+- Compose dashboards around the dataset's available measures and dimensions, not assumed business facts. Provide a useful fallback for text-only or tiny datasets.
+- Preserve Executive, Analytical, Data story, Minimal, and the custom template builder. Apply filters consistently to charts, KPIs, findings, and PDF/PNG output.
 
-- Left rail views: **Data · Clean · Analyze · Dashboard · Insights · Export · History · Settings** (icon + label on hover).
-- Top command bar: dataset switcher, quick-actions (Undo/Redo, Clean, Export), language switch, theme, profile menu.
-- Right properties panel becomes contextual (per-view content instead of always "Inspection").
-- Bottom status bar upgraded: rows · cols · memory · health score · last action · sync state.
-- Central workspace becomes a `<Outlet />`-style view switcher driven by rail state.
+## 6. Prove the complete workflow
+- Create regression fixtures with `Male / male / M / FEMALE / F`, category spelling variants, mixed numbers, missing cells, invalid and ambiguous dates, exact duplicates, and legitimate repeated order IDs.
+- Assert concrete outcomes: no deletion or filling without approval; previews match applied edits; undo restores exact rows; invalid dates stay flagged; identifiers never become summed measures; average charts never become shares; date buckets stay stable.
+- Walk typed data and Excel-first-sheet import through Clean, Analyze, Visualize, and export as a guest.
+- Walk a signed-in dataset through encrypted save, edits, undo, and fresh reload; compare the actual rows, not just row counts. Test save failures and rapid edits.
+- Run existing encryption tests plus new cleaning/chart tests, inspect the automatic build result, and check keyboard access and desktop/mobile layouts in the preview.
+- Your own Excel/CSV walkthrough remains separate until you supply a spreadsheet; use clearly labeled test data meanwhile.
 
-## Phase 2 — Profiling & Cleaning Studio (extend existing)
+## Technical approach
+- Retain React/Vite, existing semantic design tokens and UI components, Zustand/IndexedDB, SheetJS/PapaParse, Recharts, and Lovable Cloud.
+- Keep profiling, transformation, validation, and chart calculations in the browser. Move heavy browser work to a Web Worker where profiling shows it is necessary; do not add a data-processing server.
+- Introduce focused modules for operation previews/history, analytical measures, and serialized cloud persistence instead of growing `Home.tsx` further. Record structural rules in `AGENTS.md`.
+- Preserve the selected AI model. Improve summaries through structured, validated statistics, privacy-conscious digests, and explicit uncertainty—not a model change.
+- Reuse the existing private storage schema where possible; inspect deployed permissions before any schema change.
 
-- Extend `src/lib/cleanlab/issues.ts` detectors already present with any missing ones from the spec (mixed dtypes, outliers by IQR/z-score, numeric-as-text, inconsistent values, invalid emails/dates/phones — most already exist; fill gaps).
-- New **Dataset Overview** panel: row count, col count, column types, memory usage, missing summary, duplicate summary, health score (0–100 weighted).
-- Cleaning Studio: checklist of fixes → **Preview diff** → **Apply**. Show before/after stats card. Reversible via existing history stack.
-
-## Phase 3 — Visual Analytics + KPI Cards
-
-- **Auto-charts** already present; extend catalog to: Bar, Line, Area, Pie, Donut, Histogram, Scatter, Box, Heatmap, Correlation Matrix, Treemap, Table.
-- Chart customization drawer: column pickers, aggregation (sum/avg/count/min/max/median), sort, top-N filter, color, title.
-- **KPI cards**: auto-suggest set (Rows, Cols, Missing %, Duplicates, per-numeric-col avg/sum/min/max/median/std, per-cat-col unique/mode). Editable title, icon, format (number/percent/currency/compact), size (S/M/L), tone.
-
-## Phase 4 — Dashboard Builder & Insights
-
-- **Dashboard canvas** using `react-grid-layout` (drag/resize/rearrange). Widget types: KPI, chart, table, text/insight.
-- Widget actions: duplicate, delete, edit, resize. Layout auto-saves to workspace.
-- **Insights view**: rule-based summaries — top/bottom category, distribution shape, strongest correlations, outlier counts, missing-value impact. Concise, factual bullets.
-- **Export**: dataset (CSV/XLSX/JSON — done), dashboard PNG/PDF via `html2canvas` + `jspdf`, chart PNG/SVG, workspace config JSON.
-
-## Phase 5 — Auth, Cloud persistence, Workspaces, polish
-
-- Enable Lovable Cloud auth: email/password + Google. Guest mode is default; a "Save your work" banner appears after first meaningful action.
-- Tables (with RLS + GRANTs): `profiles`, `workspaces`, `datasets_meta`, `dashboards`, `exports_log`. Row-level bytes for datasets stay in IndexedDB by default; Cloud stores metadata + layouts + KPI/chart configs. Large dataset blobs uploaded to Storage bucket `datasets` (private) on explicit "Sync to cloud".
-- Pages: Sign In, Sign Up, Forgot Password, Reset Password (`/reset-password`), Profile, Account Settings. Email verification via existing Lovable auth defaults.
-- Workspace CRUD: create / rename / duplicate / archive / delete. Switcher in top bar.
-- Final QA pass: overflow, alignment, spacing, keyboard nav, focus rings, ARIA labels, mobile sheet variants of right panel, skeletons everywhere, empty states everywhere, toast-based error handling.
-
----
-
-## Technical details
-
-**New files (indicative):**
-- `src/pages/app/{Data,Clean,Analyze,Dashboard,Insights,Export,History,Settings,Profile,Auth,ResetPassword}.tsx`
-- `src/components/workspace/{TopBar (extend), IconRail (extend), PropertiesPanel, StatusBar (extend), WorkspaceSwitcher, HealthScore, DatasetOverview}.tsx`
-- `src/components/kpi/{KpiCard, KpiEditor, KpiAutoBuilder}.tsx`
-- `src/components/charts/{ChartRenderer, ChartEditor, chartTypes/*}.tsx`
-- `src/components/dashboard/{DashboardCanvas, WidgetFrame, WidgetPicker}.tsx`
-- `src/lib/analytics/{stats, correlations, insights, kpis}.ts`
-- `src/lib/i18n/dict.ts` — extend keys for every new string (EN + SO)
-- `src/store/{useWorkspaceStore, useDashboardStore, useKpiStore, useAuthStore}.ts`
-- Cloud migration for `profiles`, `workspaces`, `dashboards`, `datasets_meta`, `exports_log` (with `GRANT` + RLS).
-
-**Libraries to add:** `react-grid-layout`, `html2canvas`, `jspdf`, `simple-statistics` (small stats helpers).
-
-**Reuse as-is:** existing parsers, operations, exporters, i18n provider, dataset store, Recharts, shadcn primitives, current index.css tokens.
-
----
-
-## Out of scope (this pass)
-
-- Team / multi-user workspaces (single-owner only).
-- Scheduled imports, cloud storage integrations, SSO beyond Google.
-- AI-generated cleaning suggestions beyond current `ai-assist` function.
-- Somali translation of AI-generated free text (UI chrome only).
-
----
-
-## Deliverable per phase
-
-Each phase ends with: typecheck clean, working preview, updated `.lovable/plan.md`, and a short changelog line in the README.
-
----
-
-## Questions before I start
-
-1. **Scope confirmation:** OK to ship in 5 phases across separate turns, or do you want everything attempted in one turn (higher risk, some polish will slip)?
-2. **Auth defaults:** Enable **Email/Password + Google** by default (Lovable Cloud managed)? Any restriction I should apply (e.g. no anonymous signups — already the default)?
-3. **Cloud dataset storage:** OK with the hybrid model — metadata + configs in Postgres, raw rows in IndexedDB, opt-in "Sync to Cloud" that uploads the file to a private `datasets` bucket? Or do you want every uploaded dataset auto-uploaded on sign-in?
-4. **Dashboard export fidelity:** `html2canvas` + `jspdf` is good enough for most B2B dashboards but isn't pixel-perfect for complex SVG. Acceptable, or do you want server-side rendering later?
+## Delivery order
+Implement phases 1–3 first so the workflow is clear and safe, then phases 4–5 for advanced analysis. Add and run relevant tests alongside each phase, followed by the full phase-6 walkthrough. No billing, new marketing pages, or unrelated redesign is included.
