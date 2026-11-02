@@ -27,6 +27,7 @@ function buildDigest(ds: Dataset) {
           : { top: c.stats.top.slice(0, 5).map((t) => ({ value: String(t.value).slice(0, 40), count: t.count })) }),
       };
     }),
+    provenance: { estimatedFills: ds.audit?.reduce((n,e)=>n+e.filled,0) ?? 0, removedRows: ds.audit?.reduce((n,e)=>n+e.removed,0) ?? 0, note: "Filled values are estimates; findings are descriptive, not causal." },
     issues: detectIssues(ds).slice(0, 15).map((i) => ({ title: i.title, severity: i.severity, column: i.column })),
   };
 }

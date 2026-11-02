@@ -28,7 +28,8 @@ export default function AuthPage() {
     );
   }
   if (session) {
-    const to = (location.state as { from?: string } | null)?.from ?? "/";
+    const intended = (location.state as { from?: string } | null)?.from ?? "/";
+    const to = intended.startsWith("/") && !intended.startsWith("//") ? intended : "/";
     return <Navigate to={to} replace />;
   }
 
@@ -55,10 +56,10 @@ export default function AuthPage() {
     }
   };
 
-  const googleSignIn = async () => {
+  const socialSignIn = async (provider: "google" | "lovable") => {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
       });
       if (result.error) throw result.error;
@@ -85,12 +86,14 @@ export default function AuthPage() {
             type="button"
             variant="outline"
             className="w-full gap-2"
-            onClick={googleSignIn}
+            onClick={() => socialSignIn("google")}
             disabled={busy}
           >
             <GoogleIcon />
             Continue with Google
           </Button>
+
+          <Button type="button" variant="outline" className="mt-2 w-full" disabled={busy} onClick={() => socialSignIn("lovable")}>Continue with Lovable</Button>
 
           <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
             <div className="h-px flex-1 bg-border" />
