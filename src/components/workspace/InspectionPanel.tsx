@@ -31,7 +31,7 @@ export function InspectionPanel({ issues, selected, onToggle, onSelectAll, onCle
 
   return (
     <aside
-      className="hidden w-[340px] shrink-0 flex-col self-start rounded-md border border-border/70 bg-sidebar/40 max-h-[70vh] overflow-auto lg:flex"
+      className="flex w-full lg:w-[340px] shrink-0 flex-col self-start rounded-md border border-border/70 bg-sidebar/40 max-h-[70vh] overflow-auto"
       aria-label="Data quality inspection"
     >
       <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
@@ -137,13 +137,14 @@ function IssueRow({
   const Icon = meta.icon;
   const canSelect = !!issue.op;
   return (
-    <button
+    <Button
+      variant="ghost"
       type="button"
       onClick={canSelect ? onToggle : undefined}
       aria-pressed={selected}
       disabled={!canSelect}
       className={cn(
-        "group w-full rounded-xl border p-3 text-left transition-colors",
+        "group h-auto whitespace-normal w-full rounded-xl border p-3 text-left transition-colors",
         selected
           ? "border-primary/40 bg-primary-soft/60 shadow-soft"
           : "border-border/70 bg-card hover:border-border-strong",
@@ -199,6 +200,6 @@ function IssueRow({
           )}
         </div>
       </div>
-    </button>
+    </Button>
   );
 }

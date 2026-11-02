@@ -44,6 +44,9 @@ export interface Dataset {
   updatedAt: number;
   rows: Record<string, CellValue>[];
   columns: Column[];
+  audit?: { timestamp: number; labels: string[]; operations: Operation[]; affectedRows: number[]; cells: number; filled: number; removed: number }[];
+  roleOverrides?: Record<string, string>;
+  aggregationOverrides?: Record<string, "sum" | "avg">;
   favorite?: boolean;
   pinned?: boolean;
 }
@@ -77,7 +80,7 @@ export type Operation =
   | { kind: "remove_extra_spaces"; column: string }
   | { kind: "standardize_categories"; column: string }
   | { kind: "map_values"; column: string; mapping: Record<string, string> }
-  | { kind: "parse_date"; column: string }
+  | { kind: "parse_date"; column: string; dayFirst?: boolean }
   | { kind: "remove_outliers"; column: string; method: "iqr" | "zscore" }
   | { kind: "dedupe_by_key"; column: string }
   | { kind: "delete_rows"; indices: number[] }

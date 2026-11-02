@@ -36,9 +36,9 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
     case "fill_null": {
       const col = ds.columns.find((c) => c.name === op.column);
       let fillValue: CellValue = op.value ?? "";
-      if (op.strategy === "mean" && col?.stats.mean !== undefined) fillValue = col.stats.mean;
-      else if (op.strategy === "median" && col?.stats.median !== undefined) fillValue = col.stats.median;
-      else if (op.strategy === "mode") fillValue = col?.stats.mode ?? "";
+      if (op.value === undefined && op.strategy === "mean" && col?.stats.mean !== undefined) fillValue = col.stats.mean;
+      else if (op.value === undefined && op.strategy === "median" && col?.stats.median !== undefined) fillValue = col.stats.median;
+      else if (op.value === undefined && op.strategy === "mode") fillValue = col?.stats.mode ?? "";
       rows = rows.map((r) => (isNullish(r[op.column]) ? { ...r, [op.column]: fillValue } : r));
       break;
     }
@@ -111,7 +111,7 @@ export function applyOperation(ds: Dataset, op: Operation): Dataset {
       break;
     }
     case "parse_date": {
-      const dayFirst = detectDayFirst(rows.map((r) => r[op.column]));
+      const dayFirst = op.dayFirst ?? detectDayFirst(rows.map((r) => r[op.column]));
       rows = rows.map((r) => {
         const p = parseDateSmart(r[op.column], dayFirst);
         return p === null ? r : { ...r, [op.column]: p };

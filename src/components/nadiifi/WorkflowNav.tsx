@@ -1,4 +1,5 @@
 import { Database, Sparkles, LineChart, BarChart3, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export type Step = "data" | "clean" | "analyze" | "visualize" | "export";
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export function WorkflowNav({ active, onChange, disabled, suggested }: Props) {
-  const activeIndex = STEPS.findIndex((s) => s.id === active);
+
 
   return (
     <nav
@@ -31,11 +32,11 @@ export function WorkflowNav({ active, onChange, disabled, suggested }: Props) {
         {STEPS.map((s, i) => {
           const Icon = s.icon;
           const isActive = s.id === active;
-          const done = i < activeIndex;
+          const done = false;
           const hint = !isActive && suggested === s.id;
 
           return (
-            <button
+            <Button variant="ghost"
               key={s.id}
               type="button"
               disabled={disabled}
@@ -60,7 +61,7 @@ export function WorkflowNav({ active, onChange, disabled, suggested }: Props) {
                   next
                 </span>
               )}
-            </button>
+            </Button>
 
           );
         })}

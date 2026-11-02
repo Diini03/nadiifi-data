@@ -32,7 +32,7 @@ export function detectIssues(ds: Dataset): Issue[] {
       title: `${dupCount} duplicate rows`,
       description: `${dupCount} rows repeat another row (ignoring spaces and capitalization).`,
       severity: "warning",
-      recommendation: "Remove duplicate rows to avoid biased analytics.",
+      recommendation: "Compare every column and explicitly choose which rows to keep.",
       op: { kind: "remove_duplicates" },
       count: dupCount,
     });
@@ -61,9 +61,9 @@ export function detectIssues(ds: Dataset): Issue[] {
           column: keyCol.name,
           type: "duplicate_keys",
           title: `${extra} repeated ${keyCol.name} values`,
-          description: `${repeats.length} IDs appear more than once, e.g. ${repeats.slice(0, 3).map(([k]) => `"${k}"`).join(", ")}. Totals would be double-counted.`,
+          description: `${repeats.length} IDs appear more than once. These may be legitimate line items, not duplicates.`,
           severity: "warning",
-          recommendation: `Keep the first row for each ${keyCol.name}.`,
+          recommendation: `Review all rows sharing ${keyCol.name}; retain legitimate line items.`,
           op: { kind: "dedupe_by_key", column: keyCol.name },
           count: extra,
         });
@@ -212,9 +212,10 @@ export function detectIssues(ds: Dataset): Issue[] {
       let dated = 0;
       for (const v of vals) { const f = dateFormatOf(v); if (f) { dated++; fmts.set(f, (fmts.get(f) ?? 0) + 1); } }
       const isDateCol = vals.length > 0 && (dated / vals.length > 0.6 || (/date|day|time/i.test(col.name) && dated / vals.length > 0.3));
-      if (isDateCol) {
+      if (isDateCol || /date|timestamp/i.test(col.name)) {
         const dayFirst = detectDayFirst(vals);
         const unparsable = vals.filter((v) => parseDateSmart(v, dayFirst) === null).length;
+        if (unparsable) issues.push({ id: `invaliddate:${col.name}`, column: col.name, type: "invalid_date", title: `${unparsable} invalid dates in "${col.name}"`, description: "These originals cannot be parsed and remain unchanged.", severity: "warning", recommendation: "Correct them from the source or exclude them from time charts.", count: unparsable });
         const nonIso = vals.filter((v) => typeof v === "string" ? !/^\d{4}-\d{2}-\d{2}$/.test(v.trim()) : true).length;
         if (fmts.size > 1 || nonIso > 0) {
           issues.push({
@@ -275,7 +276,7 @@ export function detectIssues(ds: Dataset): Issue[] {
           const n = normalizeToken(v);
           if (n) {
             if (!normGroups.has(n)) normGroups.set(n, new Set());
-            normGroups.get(n)!.add(v);
+            normGroups.get(n)?.add(v);
           }
         }
         if (coerceNumber(v) !== null) numericLike++;
