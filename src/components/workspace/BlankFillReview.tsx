@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { CellValue, Dataset, Operation } from "@/lib/cleanlab/types";
 import { isNullish } from "@/lib/cleanlab/infer";
 import { formatNumber } from "@/lib/format";
+import { classifyDataset } from "@/lib/cleanlab/semantics";
 
 type Strategy = "median" | "mean" | "mode" | "constant" | "skip";
 
@@ -45,11 +46,12 @@ export function fillConfidence(ds: Dataset, column: string, s: Strategy): { scor
 
 export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onApply: (op: Operation) => void }) {
   const cols = useMemo(
-    () => dataset.columns.filter((c) => c.stats.missing > 0 && c.stats.missingPct < 100),
+    () => dataset.columns.filter((c) => c.stats.missing > 0 && c.stats.missingPct < 100 && classifyDataset(dataset).find(s => s.name === c.name)?.role !== "identifier"),
     [dataset],
   );
   const [choice, setChoice] = useState<Record<string, Strategy>>({});
   const [constants, setConstants] = useState<Record<string, string>>({});
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
 
   if (cols.length === 0) return null;
 
@@ -71,7 +73,7 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
       </div>
 
       <div className="space-y-3">
-        {cols.map((col) => {
+        {cols.filter(col => !skipped.has(col.name)).map((col) => {
           const numeric = col.type === "integer" || col.type === "float";
           const s: Strategy = choice[col.name] ?? (numeric ? "median" : "mode");
           const value = fillValue(dataset, col.name, s, constants[col.name] ?? "");
@@ -109,6 +111,7 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
                       onChange={(e) => setConstants((c) => ({ ...c, [col.name]: e.target.value }))}
                     />
                   )}
+                  <Button size="sm" variant="outline" onClick={() => setSkipped(prev => new Set(prev).add(col.name))}>Leave blank</Button>
                   <Button
                     size="sm"
                     className="h-8 text-[13px]"
@@ -126,7 +129,7 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
                 </div>
               </div>
 
-              <p className="mt-2 text-[12px] text-muted-foreground">{conf.reason}</p>
+              <p className="mt-2 text-[12px] text-muted-foreground">Heuristic reliability, not a probability of correctness. {numeric ? "Filled numbers are estimates. " : ""}{conf.reason}</p>
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-[12px]">
                   <thead className="text-muted-foreground">
@@ -158,6 +161,7 @@ export function BlankFillReview({ dataset, onApply }: { dataset: Dataset; onAppl
           );
         })}
       </div>
+      {skipped.size > 0 && <Button variant="ghost" size="sm" onClick={() => setSkipped(new Set())}>Review {skipped.size} columns left blank</Button>}
     </section>
   );
 }
