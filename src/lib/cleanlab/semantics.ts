@@ -244,7 +244,12 @@ export function classifyColumn(column: Column, rows: Record<string, CellValue>[]
 }
 
 export function classifyDataset(dataset: Dataset): SemanticColumn[] {
-  return dataset.columns.map((c) => classifyColumn(c, dataset.rows));
+  return dataset.columns.map((c) => {
+    const inferred = classifyColumn(c, dataset.rows);
+    const override = dataset.roleOverrides?.[c.name] as SemanticRole | undefined;
+    if (!override || !(override in ROLE_LABEL)) return inferred;
+    return {...inferred, role:override, confidence:1, reason:"Role selected by you; verify it against the source.", isMeasure:["measure","currency","percentage","duration"].includes(override), isDimension:["categorical","geographic","boolean","ordinal","numeric_dimension"].includes(override), isTime:override === "datetime"};
+  });
 }
 
 export function roleTone(role: SemanticRole): string {

@@ -1,7 +1,7 @@
 import type { CellValue, Dataset } from "./types";
 import { coerceNumber, isNullish } from "./infer";
 import { classifyDataset, type SemanticColumn } from "./semantics";
-import { buildCanonicalMap, canonicalLabel } from "./canonical";
+import { parseDateSmart } from "./dates";
 
 export type ChartKind = "bar" | "line" | "pie" | "histogram" | "scatter" | "kpi";
 
@@ -52,10 +52,10 @@ function aggregate(
   mode: "sum" | "avg" | "count",
 ) {
   // Merge spelling / casing / short-code variants ("M", " male ", "Male").
-  const canon = buildCanonicalMap(rows.map((r) => r[dim]));
+
   const map = new Map<string, { total: number; count: number }>();
   for (const row of rows) {
-    const key = canonicalLabel(row[dim], canon);
+    const key = isNullish(row[dim]) ? null : String(row[dim]);
     if (!key) continue;
     const entry = map.get(key) ?? { total: 0, count: 0 };
     if (measure) {
@@ -91,9 +91,11 @@ function timeSeries(
   for (const row of rows) {
     const raw = row[timeCol];
     if (isNullish(raw)) continue;
-    const d = new Date(String(raw));
+    const parsed = parseDateSmart(raw, false);
+    if (!parsed) continue;
+    const d = new Date(parsed);
     if (Number.isNaN(d.getTime())) continue;
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
     const n = num(row[measure]);
     if (n === null) continue;
     const e = map.get(key) ?? { total: 0, count: 0 };
@@ -195,7 +197,7 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
         kind: "line",
         title: `${m.name} over time`,
         subtitle: `monthly ${lineAgg === "avg" ? "average" : "total"}, grouped by ${t.name}`,
-        why: `${t.name} is a datetime column and ${m.name} is an additive measure — a trend line shows how it moves across ${data.length} periods.`,
+        why: `${t.name} is a datetime column and ${m.name} is an additive measure — a trend line shows how its monthly summary moves across ${data.length} periods.`,
         confidence: Math.min(0.95, (t.confidence + m.confidence) / 2 + 0.05),
         dimension: t.name,
         measure: m.name,
@@ -209,7 +211,7 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   for (const d of dimensions.slice(0, 3)) {
     const m = measures[0];
     if (m) {
-      const agg = defaultAggregation(m);
+      const agg = dataset.aggregationOverrides?.[m.name] === "avg" ? "avg" : defaultAggregation(m);
       const data = aggregate(rows, d.name, m.name, agg).slice(0, 12);
       if (data.length >= 2) {
         charts.push({
@@ -246,18 +248,19 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   const pieDim = dimensions.find((d) => d.cardinality >= 2 && d.cardinality <= 6);
   if (pieDim) {
     const m = measures[0];
-    const pieAgg = m ? defaultAggregation(m) : "count";
-    const data = aggregate(rows, pieDim.name, m ? m.name : null, pieAgg);
+    const pieMeasure = m && isAdditive(m) && rows.every(r => num(r[m.name]) === null || Number(num(r[m.name])) >= 0) ? m : undefined;
+    const pieAgg = pieMeasure ? "sum" : "count";
+    const data = aggregate(rows, pieDim.name, pieMeasure ? pieMeasure.name : null, pieAgg);
     if (data.length >= 2)
       charts.push({
         id: `pie-${pieDim.name}`,
         kind: "pie",
         title: `Share by ${pieDim.name}`,
-        subtitle: m ? (pieAgg === "avg" ? `average ${m.name} per group` : `share of ${m.name}`) : "share of records",
+        subtitle: pieMeasure ? `share of ${pieMeasure.name}` : "share of records",
         why: `${pieDim.name} has only ${pieDim.cardinality} groups, which is few enough for a part-to-whole view.`,
         confidence: Math.min(0.9, pieDim.confidence),
         dimension: pieDim.name,
-        measure: m?.name,
+        measure: pieMeasure?.name,
         aggregation: pieAgg,
         data,
       });

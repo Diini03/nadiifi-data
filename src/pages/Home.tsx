@@ -9,7 +9,10 @@ import { EmptyDropzone } from "@/components/workspace/EmptyDropzone";
 import { InspectingOverlay } from "@/components/workspace/InspectingOverlay";
 import { InspectionPanel } from "@/components/workspace/InspectionPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
-import { CleanBriefing } from "@/components/workspace/CleanBriefing";
+import { ChangePreview } from "@/components/workspace/ChangePreview";
+import { DateReview } from "@/components/workspace/DateReview";
+import { applyApproved, safeFormatting } from "@/lib/cleanlab/review";
+import { useWorkspacePersistence } from "@/lib/cloud/useWorkspacePersistence";
 import { CleanSuggestions } from "@/components/workspace/CleanSuggestions";
 import { BlankFillReview } from "@/components/workspace/BlankFillReview";
 import { CategoryOverrides } from "@/components/workspace/CategoryOverrides";
@@ -35,7 +38,7 @@ import { buildSampleFile } from "@/lib/cleanlab/sample";
 import type { CellValue, Dataset, Issue, Operation } from "@/lib/cleanlab/types";
 import { useDatasetStore } from "@/store/useDatasetStore";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { upsertSavedDataset, loadSavedDataset } from "@/lib/cloud/datasets";
+import { loadSavedDataset } from "@/lib/cloud/datasets";
 
 type Stage = "empty" | "inspecting" | "ready" | "cleaned";
 
@@ -60,7 +63,7 @@ function countCellDiff(a: Dataset, b: Dataset): number {
 }
 
 const PROMISES = [
-  { icon: ShieldCheck, title: "Private by design", body: "Your file never leaves the browser. No uploads, no servers, no waiting." },
+  { icon: ShieldCheck, title: "Private by design", body: "Processing stays in your browser. Signed-in saves encrypt your rows; AI receives a limited summary." },
   { icon: Zap, title: "Instant profiling", body: "Types, missing values, duplicates and outliers detected the moment you drop a file." },
   { icon: Gauge, title: "Analysis-ready output", body: "Download clean CSV, Excel or JSON that drops straight into your next tool." },
 ];
@@ -77,7 +80,11 @@ export default function Home() {
   const [lastAction, setLastAction] = useState<string | null>(null);
   const [cleanResult, setCleanResult] = useState<CleanRecord | null>(null);
   const [undoStack, setUndoStack] = useState<Dataset[]>([]);
-  const [libraryVersion, setLibraryVersion] = useState(0);
+  const [libraryVersion] = useState(0);
+  const [pending, setPending] = useState<Operation[] | null>(null);
+  const persistence = useWorkspacePersistence(user?.id, dataset, step, undoStack, draft => {
+    setDataset(draft.dataset); setStep(draft.step as Step); setUndoStack(draft.undo ?? []); setStage("ready");
+  });
 
   const addDataset = useDatasetStore((s) => s.addDataset);
   const logExport = useDatasetStore((s) => s.logExport);
@@ -89,20 +96,9 @@ export default function Home() {
 
   useEffect(() => {
     if (step === "clean" && dataset) {
-      setSelected(new Set(issues.filter((i) => i.op && i.type !== "duplicate_keys").map((i) => i.id)));
+      setSelected(new Set(issues.filter((i) => i.op && safeFormatting(i.op)).map((i) => i.id)));
     }
   }, [step, dataset, issues]);
-
-  const syncCloud = async (ds: Dataset) => {
-    if (!user) return;
-    try {
-      await upsertSavedDataset(user.id, ds);
-      setLibraryVersion((v) => v + 1);
-    } catch (err) {
-      console.error("cloud sync failed", err);
-      toast.error("Couldn't save to your cloud workspace.");
-    }
-  };
 
   const scrollToTool = () => toolRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -124,7 +120,7 @@ export default function Home() {
       setStage("ready");
       setStep("clean");
       addDataset(ds).catch(() => {});
-      syncCloud(ds);
+
       toast.success(`${ds.rows.length.toLocaleString()} rows loaded`);
     } catch (err) {
       console.error(err);
@@ -142,43 +138,25 @@ export default function Home() {
     setStage("ready");
     setStep("clean");
     addDataset(ds).catch(() => {});
-    syncCloud(ds);
+
     toast.success(`${ds.rows.length} rows loaded`);
     scrollToTool();
   };
 
   const runClean = () => {
-    if (!dataset || selected.size === 0) return;
-    const before = dataset;
-    let working = dataset;
-    const applied: string[] = [];
-    for (const issue of issues) {
-      if (!selected.has(issue.id) || !issue.op) continue;
-      working = applyOperation(working, issue.op);
-      applied.push(operationLabel(issue.op));
-    }
-    setUndoStack((s) => [...s, before]);
-    setDataset(working);
-    setLastAction(applied[applied.length - 1] ?? null);
-    setCleanResult({ before, after: working, cellsEdited: countCellDiff(before, working) });
-    setStage("cleaned");
-    setSelected(new Set());
-    syncCloud(working);
-    toast.success(`Applied ${applied.length} fixes`, {
-      description: "Your data is clean — open Visualize to chart it.",
-      action: { label: "Visualize", onClick: () => setStep("visualize") },
-    });
+    setPending(issues.filter(i => selected.has(i.id) && i.op && !["duplicate_keys", "mixed_dates"].includes(i.type)).flatMap(i => i.op ? [i.op] : []));
   };
-
-  const applyManual = (op: Operation) => {
-    if (!dataset) return;
+  const applyManual = (op: Operation) => setPending([op]);
+  const approveChanges = () => {
+    if (!dataset || !pending?.length) return;
     const before = dataset;
-    const working = applyOperation(before, op);
-    setUndoStack((s) => [...s, before]);
+    const working = applyApproved(before, pending);
+    setUndoStack(stack => [...stack, before]);
     setDataset(working);
-    setLastAction(operationLabel(op));
-    syncCloud(working);
-    toast.success(operationLabel(op));
+    setLastAction(pending.map(operationLabel).join(", "));
+    setCleanResult({before, after:working, cellsEdited:countCellDiff(before, working)});
+    setStage("ready"); setSelected(new Set()); setPending(null);
+    toast.success("Approved changes applied", {description:"Review remaining decisions or continue to Analyze."});
   };
 
   const handleUndo = () => {
@@ -278,7 +256,7 @@ export default function Home() {
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
               <DatasetTable dataset={dataset} />
               <InspectionPanel
-                issues={issues}
+                issues={issues.map(i => ["duplicate_keys", "mixed_dates"].includes(i.type) ? {...i, op:undefined} : i)}
                 selected={selected}
                 onToggle={(id) =>
                   setSelected((prev) => {
@@ -287,16 +265,18 @@ export default function Home() {
                     return next;
                   })
                 }
-                onSelectAll={() => setSelected(new Set(issues.filter((i) => i.op).map((i) => i.id)))}
+                onSelectAll={() => setSelected(new Set(issues.filter((i) => i.op && !["duplicate_keys", "mixed_dates"].includes(i.type)).map((i) => i.id)))}
                 onClear={() => setSelected(new Set())}
               />
             </div>
           )}
-          <CleanBriefing dataset={dataset} />
+          <h2 className="font-display text-lg font-semibold">Decisions to review</h2>
+          <DateReview key={dataset.updatedAt} dataset={dataset} onApply={applyManual} />
           <CleanSuggestions dataset={dataset} />
-          <BlankFillReview dataset={dataset} onApply={applyManual} />
+          <BlankFillReview key={dataset.updatedAt} dataset={dataset} onApply={applyManual} />
           <CategoryOverrides dataset={dataset} onApply={applyManual} />
           <DuplicateReview dataset={dataset} onApply={applyManual} />
+          {!!dataset.audit?.length && <section className="border-t border-border pt-4"><h3 className="font-semibold">Changes already applied</h3><ul className="mt-2 space-y-2 text-sm text-muted-foreground">{dataset.audit.map((entry,i) => <li key={i}>{entry.labels.join(" · ")} — {entry.cells} cells changed; {entry.filled} filled values (estimates); {entry.removed} rows removed.</li>)}</ul></section>}
           {stage === "cleaned" && <DatasetTable dataset={dataset} />}
         </div>
       );
@@ -306,8 +286,9 @@ export default function Home() {
       return (
         <div className="space-y-4">
           <KpiStrip dataset={dataset} />
+          <p className="text-sm text-muted-foreground">{detectIssues(dataset).length} outstanding checks · {dataset.audit?.reduce((n,e)=>n+e.filled,0) ?? 0} approved estimated fills · {dataset.audit?.reduce((n,e)=>n+e.removed,0) ?? 0} removed rows. Findings use the current approved table.</p>
           <AiSummary dataset={dataset} />
-          <ColumnIntelligence dataset={dataset} />
+          <ColumnIntelligence dataset={dataset} onChange={setDataset} />
           <InsightsView dataset={dataset} />
         </div>
       );
@@ -339,7 +320,7 @@ export default function Home() {
           active={step}
           onChange={setStep}
           disabled={stage === "inspecting"}
-          suggested={stage === "cleaned" && step !== "visualize" ? "visualize" : null}
+          suggested={null}
         />
       )}
 
@@ -375,7 +356,7 @@ export default function Home() {
                 {step === "clean" && stage !== "cleaned" && (
                   <Button size="sm" className="h-8 text-[13px]" onClick={runClean} disabled={selected.size === 0}>
                     <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                    Clean {selected.size > 0 ? `(${selected.size})` : ""}
+                    Review fixes {selected.size > 0 ? `(${selected.size})` : ""}
                   </Button>
                 )}
                 <Button size="sm" variant="outline" className="h-8 text-[13px]" onClick={handleUndo} disabled={undoStack.length === 0}>
@@ -388,7 +369,12 @@ export default function Home() {
                   <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> New file
                 </Button>
               </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                <p className="text-sm text-muted-foreground">{dataset.rows.length.toLocaleString()} rows · {step === "clean" ? `${detectIssues(dataset).length} outstanding checks` : `Current stage: ${step}`}</p>
+                <div className="flex items-center gap-2 text-xs"><span role="status">{persistence.status}</span>{persistence.status === "Save failed" && <Button size="sm" variant="outline" onClick={persistence.retry}>Retry save</Button>}{!user && <Button size="sm" variant="outline" asChild><Link to="/auth" state={{from:"/"}}>Sign in to save privately</Link></Button>}</div>
+              </div>
               {renderStep()}
+              <div className="flex justify-end border-t border-border pt-4"><Button onClick={() => setStep(({data:"clean", clean:"analyze", analyze:"visualize", visualize:"export", export:"data"} as const)[step])}>{({data:"Review cleaning",clean:"Examine findings",analyze:"Create charts",visualize:"Export results",export:"Back to data"} as const)[step]}</Button></div>
             </div>
           ) : stage === "inspecting" ? (
             <InspectingOverlay />
@@ -481,6 +467,7 @@ export default function Home() {
       {!dataset && <SiteFooter />}
 
 
+      {dataset && pending?.length ? <ChangePreview dataset={dataset} operations={pending} onClose={() => setPending(null)} onApprove={approveChanges} /> : null}
       <StatusBar dataset={dataset} lastAction={lastAction} />
     </div>
   );

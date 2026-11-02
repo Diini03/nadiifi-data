@@ -1,3 +1,4 @@
+import { ChartExplorer } from "@/components/workspace/ChartExplorer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -153,6 +154,7 @@ export function SmartCharts({ dataset }: { dataset: Dataset }) {
         ))}
       </div>
 
+      <ChartExplorer dataset={dataset} />
       {rec.rejected.length > 0 && (
         <Card className="p-4 shadow-soft">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
