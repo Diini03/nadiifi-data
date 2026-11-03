@@ -17,6 +17,8 @@ export interface ChartSpec {
   measure?: string;
   secondMeasure?: string;
   aggregation?: "sum" | "avg" | "count";
+  includedRows?: number;
+  excludedRows?: number;
   data: Array<Record<string, CellValue | number>>;
 }
 
@@ -169,7 +171,7 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
     if (nums.length === 0) continue;
     const total = nums.reduce((s, n) => s + n, 0);
     const avg = total / nums.length;
-    const isRate = !isAdditive(m);
+    const isRate = !isAdditive(m) || dataset.aggregationOverrides?.[m.name] === "avg";
     charts.push({
       id: `kpi-${m.name}`,
       kind: "kpi",
@@ -186,7 +188,7 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   // Time series.
   for (const t of times.slice(0, 1)) {
     for (const m of measures.slice(0, 2)) {
-      const lineAgg = defaultAggregation(m);
+      const lineAgg = dataset.aggregationOverrides?.[m.name] === "avg" ? "avg" : defaultAggregation(m);
       const data = timeSeries(rows, t.name, m.name, lineAgg);
       if (data.length < 3) {
         rejected.push({ title: `${m.name} over ${t.name}`, reason: `Skipped: fewer than 3 usable time periods after parsing ${t.name}.` });
@@ -248,7 +250,7 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
   const pieDim = dimensions.find((d) => d.cardinality >= 2 && d.cardinality <= 6);
   if (pieDim) {
     const m = measures[0];
-    const pieMeasure = m && isAdditive(m) && rows.every(r => num(r[m.name]) === null || Number(num(r[m.name])) >= 0) ? m : undefined;
+    const pieMeasure = m && dataset.aggregationOverrides?.[m.name] !== "avg" && isAdditive(m) && rows.every(r => num(r[m.name]) === null || Number(num(r[m.name])) >= 0) ? m : undefined;
     const pieAgg = pieMeasure ? "sum" : "count";
     const data = aggregate(rows, pieDim.name, pieMeasure ? pieMeasure.name : null, pieAgg);
     if (data.length >= 2)
@@ -305,6 +307,11 @@ export function recommendCharts(dataset: Dataset, limit = 8): Recommendations {
       });
   }
 
+  for (const chart of charts) {
+    const included = rows.filter(r => (!chart.dimension || !isNullish(r[chart.dimension])) && (!chart.measure || num(r[chart.measure]) !== null) && (chart.kind !== "line" || parseDateSmart(r[chart.dimension ?? ""], false) !== null)).length;
+    chart.includedRows=included; chart.excludedRows=rows.length-included;
+    chart.subtitle += ` · ${included} included / ${rows.length-included} excluded`;
+  }
   charts.sort((x, y) => {
     const order: Record<ChartKind, number> = { kpi: 0, line: 1, bar: 2, pie: 3, histogram: 4, scatter: 5 };
     if (order[x.kind] !== order[y.kind]) return order[x.kind] - order[y.kind];
