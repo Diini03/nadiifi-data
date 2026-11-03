@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { Dataset } from "@/lib/cleanlab/types";
 import { classifyDataset, ROLE_LABEL, roleTone } from "@/lib/cleanlab/semantics";
-import { confidenceLabel } from "@/lib/cleanlab/recommend";
+import { defaultAggregation, confidenceLabel } from "@/lib/cleanlab/recommend";
 
 export function ColumnIntelligence({ dataset, onChange }: { dataset: Dataset; onChange?: (ds:Dataset) => void }) {
   const columns = useMemo(() => classifyDataset(dataset), [dataset]);
@@ -37,7 +37,7 @@ export function ColumnIntelligence({ dataset, onChange }: { dataset: Dataset; on
                   </span>
                 )}
               </div>
-              {onChange && <div className="mt-2 flex flex-wrap gap-2"><Select value={c.role} onValueChange={role=>onChange({...dataset,updatedAt:Date.now(),roleOverrides:{...dataset.roleOverrides,[c.name]:role}})}><SelectTrigger className="w-48" aria-label={`Role for ${c.name}`}><SelectValue/></SelectTrigger><SelectContent>{Object.entries(ROLE_LABEL).map(([role,label])=><SelectItem key={role} value={role}>{label}</SelectItem>)}</SelectContent></Select>{c.isMeasure && <Select value={dataset.aggregationOverrides?.[c.name]??"avg"} onValueChange={v=>onChange({...dataset,updatedAt:Date.now(),aggregationOverrides:{...dataset.aggregationOverrides,[c.name]:v as "avg"|"sum"}})}><SelectTrigger className="w-40" aria-label={`Aggregation for ${c.name}`}><SelectValue/></SelectTrigger><SelectContent><SelectItem value="avg">Average</SelectItem></SelectContent></Select>}</div>}
+              {onChange && <div className="mt-2 flex flex-wrap gap-2"><Select value={c.role} onValueChange={role=>onChange({...dataset,updatedAt:Date.now(),roleOverrides:{...dataset.roleOverrides,[c.name]:role}})}><SelectTrigger className="w-48" aria-label={`Role for ${c.name}`}><SelectValue/></SelectTrigger><SelectContent>{Object.entries(ROLE_LABEL).map(([role,label])=><SelectItem key={role} value={role}>{label}</SelectItem>)}</SelectContent></Select>{c.isMeasure && <Select value={dataset.aggregationOverrides?.[c.name]??defaultAggregation(c)} onValueChange={v=>onChange({...dataset,updatedAt:Date.now(),aggregationOverrides:{...dataset.aggregationOverrides,[c.name]:v as "avg"|"sum"}})}><SelectTrigger className="w-40" aria-label={`Aggregation for ${c.name}`}><SelectValue/></SelectTrigger><SelectContent><SelectItem value="avg">Average</SelectItem>{defaultAggregation(c)==="sum"&&<SelectItem value="sum">Sum</SelectItem>}</SelectContent></Select>}</div>}
               <p className="mt-1.5 text-xs text-muted-foreground">{c.reason}</p>
               <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                 <span>{c.cardinality.toLocaleString()} distinct</span>
