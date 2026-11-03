@@ -1,112 +1,159 @@
-
 # NadiifiData
 
-**Clean data. Better decisions.....**
+**Clean data. See clearly.**
 
-NadiifiData is a focused, in-browser data-quality workspace. Upload a messy CSV or Excel file, review the issues automatically detected in it, apply cleaning fixes with one click, then download the cleaned dataset — or continue straight to [XogArag](https://xog-arag.vercel.app) for visualization and dashboards.
-
-**Live app:** [https://nadiifi-data.vercel.app/](https://nadiifi-data.diinikahiye.online/)
-
----
+NadiifiData (Nadiifi) is a guest-first data cleaning and analysis workspace built by Diini Kahiye. Upload a spreadsheet or type a dataset yourself, review proposed changes, understand your columns, and create meaningful charts and exportable dashboards—all in one workflow.
 
 ## Preview
 
 ![NadiifiData preview](https://cleanlab-ai.lovable.app/__l5e/assets-v1/5a051c07-f9b9-4bba-855c-8c5ab269cf7d/nadiifidata-preview.png)
 
----
-
 ## About the Project
 
-Data preparation is one of the most time-consuming stages of any analytical workflow. Real-world datasets are rarely ready for analysis: they contain missing entries, inconsistent formatting, duplicated rows, unexpected outliers, and columns whose data types don't match their content. NadiifiData was built to compress that preparation phase into a fast, visual, browser-based workflow that anyone on a data team can use — not just engineers comfortable with pandas or SQL.
+This started as a side project by a data analyst and computer science graduate exploring how to build a practical analytical tool through AI-assisted development. Its focus is not simply making messy data look tidy: it is helping users understand what changes, approve consequential decisions, and avoid misleading analysis.
 
-The application runs entirely in the browser, meaning uploaded data never leaves the user's machine. Files are parsed locally, profiled in memory, and cleaned through reversible operations. The result is a workflow that is both privacy-preserving and fast enough for interactive use on datasets containing tens of thousands of rows.
+Parsing, profiling, cleaning, and analytical calculations run in the browser. Lovable Cloud handles sign-in, private saved datasets, and AI assistance. Charts and dashboards are built into the workspace; a separate visualization application is not required.
 
----
+## The Workflow
 
-## Features
+```text
+Data → Clean → Analyze → Visualize → Export
+```
 
-**Dataset ingestion.** Upload CSV and Excel files through drag-and-drop or a file picker. Files are parsed client-side using streaming parsers, so large datasets load without freezing the interface.
+### Data
 
-**Automatic profiling.** As soon as a dataset is loaded, NadiifiData generates a full profile: row and column counts, inferred data types, value distributions, unique-value counts, and per-column completeness scores.
+- Upload CSV, TSV, Excel, JSON, or NDJSON files.
+- Open the first Excel worksheet with its headers.
+- Build a dataset by entering column names and rows yourself, or start with a sample.
+- Work without an account; sign in when you want private cloud saves.
 
-**Missing value detection.** Empty cells, whitespace-only values, and common null placeholders (`NA`, `N/A`, `null`, `-`) are identified and surfaced with per-column impact metrics.
+### Clean
 
-**Duplicate detection.** Exact and near-duplicate rows are flagged and can be reviewed before removal, so users always understand what will be deleted.
+- Profile missing values, category inconsistencies, numeric issues, mixed or invalid dates, and duplicate rows.
+- Apply safe formatting fixes such as trimming whitespace; review proposed changes before approval.
+- Normalize suitable categorical columns using casing, known aliases, and conservative spelling rules. Custom mappings let users choose their own labels.
+- Review blank-cell fills with a before-and-after preview, a heuristic confidence score, and an explanation. Leave cells blank or explicitly approve a fill; numeric fills remain estimates.
+- Review duplicate groups with full-row comparisons and individual **Keep** or **Delete** choices. Rows default to Keep; repeated business IDs are distinguished from identical rows because they may represent legitimate line items.
+- Choose date order explicitly when needed. Unparseable dates remain unchanged rather than being silently guessed.
+- Use AI suggestions to prioritize fixes, not to execute unapproved edits.
+- Track approved operations and affected cells in an audit record. Undo snapshots support recovery of exact previous rows.
 
-**Data type validation.** Columns are checked against inferred types. Values that don't fit — a string in a numeric column, an invalid email, a malformed date — are highlighted with a suggested fix.
+### Analyze
 
-**Outlier detection.** Numeric columns are analyzed using statistical methods (IQR and z-score) to surface unusual values that may warrant review.
+- Inspect column types, completeness, cardinality, statistics, and data quality issues.
+- Understand semantic roles such as identifier, measure, dimension, and date, with confidence and reasoning.
+- Override inferred roles and supported aggregation choices when domain knowledge matters.
+- Read calculated findings and an AI-written plain-English briefing backed by column understanding and approval provenance.
+- See approved fills identified as estimates instead of treating them as observed values.
 
-**Column statistics.** Every column receives a detailed statistical summary: min, max, mean, median, standard deviation for numerics; top values and cardinality for categoricals; date ranges for temporal columns.
+### Visualize
 
-**Interactive charts.** Histograms, distributions, and correlation views are generated automatically so users can understand the shape of their data at a glance.
+- Generate recommended charts with reasons, confidence, coverage counts, and explanations for excluded chart choices.
+- Explore dimensions, measures, aggregation, date grain, sorting, and top-N categories.
+- Use UTC calendar buckets for date grouping. Share charts are restricted to counts or suitable nonnegative additive totals—not averages.
+- Generate dataset-specific dashboard KPIs and findings, with a column/value filter for dashboard content.
+- Choose **Executive**, **Analytical**, **Data story**, or **Minimal** layouts.
+- Customize fonts, accent colors, column count, spacing, and corners; edit dashboard titles and remove chart cards.
 
-**Data quality score.** A single, composite score summarizes overall dataset health, combining completeness, validity, uniqueness, and consistency into a number that improves as cleaning operations are applied.
+### Export
 
-**Export cleaned datasets.** Once cleaning is complete, datasets can be exported to CSV or Excel, along with a printable report describing every operation applied.
+- Download cleaned data as CSV or Excel.
+- Export dashboard reports as PDF or PNG.
 
-**Responsive UI and dark mode.** The interface is designed for desktop analytical work but adapts to smaller screens, and includes a fully themed dark mode for extended sessions.
+## Workspace and Sign-In
 
----
+Email/password, Google, and Sign in with Lovable are connected through Lovable Cloud. Password recovery and a saved-datasets workspace are available.
 
-## Tech Stack
+Active workflow drafts and undo snapshots are stored locally in IndexedDB. Encrypted cloud writes use a shared serialized save queue so rapid edits do not race one another. The workspace shows save status and offers retry after failed saves.
 
-**Frontend.** The application is built with React and TypeScript, styled with Tailwind CSS, and uses shadcn/ui as its component foundation. Tables are powered by TanStack Table for virtualized rendering of large datasets, and charts are rendered with Recharts.
+Local recovery is tied to the browser: clearing site data can remove local drafts. Cloud saves provide account-based persistence, but cloud history is not a replacement for the local undo stack.
 
-**Data layer.** CSV parsing uses Papaparse; Excel workbooks are read with SheetJS. Both run in the browser, streaming rows into memory without a server round-trip. Application state is managed with Zustand, and datasets are persisted locally through IndexedDB so sessions survive page reloads.
+## Privacy and Security
 
-**Backend services.** For AI-powered cleaning suggestions, a lightweight edge function proxies requests to a language model gateway. No raw dataset content is sent — only anonymized column statistics.
+**Local processing.** File parsing and deterministic transformations happen in the browser. Guest use does not require uploading the dataset to cloud storage.
 
-**Deployment.** The project is deployed as a static single-page application on Vercel.
+**Private cloud saves.** Saved dataset payloads are encrypted in the browser with AES-GCM before storage. Owner-scoped access rules protect datasets and their encryption keys.
 
----
+**Encryption boundary.** This is not zero-knowledge encryption. Nadiifi can retrieve the account's key and decrypt datasets for the signed-in user; the platform can therefore decrypt stored data. Encryption protects against casual exposure, not against the platform itself.
+
+**Key safety.** Concurrent first saves insert a key only if one does not exist and then read the winning key. Decryption never creates a replacement key. Legacy plaintext saves are upgraded on authenticated load with a timestamp guard to avoid overwriting newer edits.
+
+**AI requests.** AI assistance sends a derived digest such as column names, semantic roles, statistics, detected issues, calculated findings, and change provenance through an edge function to Lovable AI Gateway. It does not send the entire raw table, but derived metadata can still be sensitive. AI output should be reviewed rather than treated as verified fact.
+
+## What Actually Powers the Data Work
+
+| Responsibility | Implementation |
+| --- | --- |
+| CSV and TSV parsing | PapaParse |
+| Excel reading and writing | SheetJS (`xlsx`) |
+| JSON and NDJSON ingestion | Browser-side parsing |
+| Profiling and cleaning | Custom TypeScript engine: type inference, statistics, issue detection, category canonicalization, date parsing, and reversible operations |
+| Column understanding | Deterministic semantic classification with user overrides |
+| Chart recommendations | Custom ranking and aggregation rules |
+| Dashboard composition | Dataset-specific KPIs, calculated findings, and layout templates |
+| Chart rendering | Recharts |
+| Dashboard PDF and image export | jsPDF and browser image-capture utilities |
+| Application state | Zustand |
+| Local persistence | IndexedDB via idb-keyval |
+| Cloud persistence | Lovable Cloud with browser encryption and owner-scoped access |
+| AI assistance | `ai-assist` edge function through Lovable AI Gateway |
+
+The interface uses React, TypeScript, Vite, Tailwind CSS, shadcn/ui, and Framer Motion. The deterministic engine—not the language model—performs cleaning and analytical calculations.
 
 ## Architecture
 
-The processing pipeline is intentionally linear and easy to reason about. A user uploads a dataset, which enters the parsing layer. The parsed table is passed to the profiling engine, which produces a structured report of quality issues and column statistics. From there, the user works inside the cleaning engine, applying reversible operations that update both the dataset and its profile in real time. Interactive visualizations render alongside the table so the impact of each operation is visible immediately. When the user is satisfied, the export layer produces the final cleaned file along with a summary of every change applied.
-
+```text
+Profiler → Semantic model → Cleaning engine → Validation
+         → Analytical model → Visualization ranking → Dashboard composer
 ```
-Upload  →  Profiling  →  Cleaning  →  Visualization  →  Export
-```
 
----
+Dataset mutations pass through operation previews and explicit approval records. User semantic roles are applied before analytical calculations. Local drafts preserve active work, while cloud writes serialize encrypted dataset snapshots.
 
-## Project Structure
+### Project Structure
 
-The codebase is organized around a clear separation between the presentation layer and the data-processing layer. UI components live under a `components` directory, split between generic primitives and application-specific views. Pages and routing live under `pages`. All data-processing logic — parsing, profiling, cleaning operations, exporters, and type inference — lives under a dedicated `lib` folder so it can be tested and reasoned about independently of the UI. State stores, custom hooks, and shared utilities each have their own directories, and static assets are served from `public`.
+- `src/pages/` — workflow, workspace, sign-in, recovery, and informational pages.
+- `src/components/workspace/` — cleaning reviews, column understanding, AI briefings, dashboards, and template controls.
+- `src/components/charts/` — recommended charts and chart rendering.
+- `src/lib/cleanlab/` — parsing, profiling, semantic roles, cleaning operations, previews, analytical calculations, recommendations, and dashboard composition.
+- `src/lib/cloud/` — encrypted persistence, save ordering, and workflow recovery.
+- `supabase/functions/ai-assist/` — AI Gateway integration.
 
----
+## Local Development
 
-## Installation
-
-Clone the repository, install dependencies, and start the development server:
+With the repository checked out:
 
 ```bash
-git clone https://github.com/Diini03/nadiifi-data.git
-cd nadiifi-data
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
-The application will be available at `http://localhost:8080`.
+The development server is available at `http://localhost:8080`.
 
----
+```bash
+bun run test       # Focused workflow and encryption regressions
+bun run lint       # Lint checks
+bun run build      # Production frontend build
+```
 
-## Roadmap
+Cloud sign-in, private saves, and AI assistance also require the project's Lovable Cloud integration. Never commit private service credentials.
 
-Planned improvements focus on collaboration and automation. Upcoming work includes AI-powered cleaning suggestions that recommend operations based on detected issues, a persistent history view for tracking data quality over time across multiple uploads, team workspaces so analysts can share datasets and cleaning recipes, scheduled imports for recurring data feeds, and native integrations with common cloud storage providers.
+## Verification and Current Limits
 
----
+The latest update passed 15 focused regression tests covering approval safety, duplicate selection, estimated-fill provenance, date handling, aggregation rules, UTC buckets, filters, save ordering, encryption round trips, and concurrent key creation. The preview's automatic build passed.
 
-## Security
+Browser checks exercised typed datasets and a deliberately messy first-sheet Excel workbook through cleaning approvals, duplicate decisions, undo, Analyze, visualization, filtering, PDF export, and local reload recovery without browser errors.
 
-Security is grounded in the fact that data processing happens on the client. Uploaded files are validated before parsing to reject malformed or oversized inputs. All user input is sanitized before being rendered or used in operations. Any network communication that does occur — for AI-assisted suggestions — is transmitted over authenticated, protected API routes and never includes raw dataset content.
+Remaining verification:
 
----
+- Authenticated edits, undo, reload, and failed-save retry against live private cloud saves still need a signed-in preview session for the latest workflow changes.
+- A walkthrough using the user's own Excel or CSV file is pending an actual spreadsheet upload.
 
-## License
+Known boundaries:
 
-Released under the MIT License.
+- Category normalization is conservative, not a guarantee of correct domain terminology; inspect proposed merges.
+- Blank-fill confidence is heuristic, not a calibrated probability.
+- Ambiguous dates require a date-order choice; invalid dates can remain unresolved.
+- AI briefings can be wrong and do not replace calculated checks or human review.
 
 ---
 
