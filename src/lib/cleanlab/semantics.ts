@@ -1,4 +1,5 @@
 import type { CellValue, Column, Dataset } from "./types";
+import { parseDateSmart } from "./dates";
 import { coerceNumber, isNullish } from "./infer";
 
 /**
@@ -147,16 +148,18 @@ export function classifyColumn(column: Column, rows: Record<string, CellValue>[]
     return build("url", 0.96, "Values are web addresses.", ["Reference"], ["Aggregation", "Charts"]);
   if (column.type === "phone")
     return build("phone", 0.9, "Values match a phone number pattern.", ["Filtering"], ["Aggregation", "Charts"]);
-  if (column.type === "date" || (DATE_NAME_RE.test(lower) && column.type !== "integer" && column.type !== "float"))
+  if (column.type === "date" || (DATE_NAME_RE.test(lower) && column.type !== "integer" && column.type !== "float")) {
+    const invalid=nonNull.filter(v=>parseDateSmart(v,false)===null).length;
     return build(
       "datetime",
-      column.type === "date" ? 0.96 : 0.7,
-      column.type === "date"
+      invalid ? Math.max(0.4,1-invalid/Math.max(1,nonNull.length)) : column.type === "date" ? 0.96 : 0.7,
+      invalid ? `${invalid} values cannot be parsed; column-level confidence is not row-level validation.` : column.type === "date"
         ? "Values parse as valid dates."
         : "The column name suggests a date even though values are not fully parseable.",
       ["Line chart", "Trend over time", "Grouping by period"],
       ["Sum", "Average"],
     );
+  }
   if (column.type === "boolean")
     return build("boolean", 0.95, "Only two distinct true/false-like values.", ["Grouping", "Filtering", "Share of total"], ["Sum", "Histogram"]);
 

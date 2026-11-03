@@ -34,8 +34,9 @@ async function parseXLSX(file: File): Promise<Record<string, CellValue>[]> {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
   const sheet = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<Record<string, CellValue>>(sheet, { defval: null, raw: true });
-  return rows;
+  if (!sheet) throw new Error("No readable worksheet found.");
+  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null, raw: true });
+  return rows.map(row => Object.fromEntries(Object.entries(row).map(([key,value]) => [key, value instanceof Date ? value.toISOString() : value as CellValue])));
 }
 
 function flattenValue(v: unknown): CellValue {

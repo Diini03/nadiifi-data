@@ -1,11 +1,14 @@
 # Verification
 
 ## Workflow and intelligence upgrade
-- [ ] Review and approve the phased workflow, cleaning, visualization, and cloud integration plan.
-- [ ] Implement clearer workflow and sign-in/save continuity.
-- [ ] Strengthen cleaning review, validation, and provenance.
-- [ ] Strengthen analytical measures, chart choices, and dashboards.
-- [ ] Verify guest and authenticated workflows with a deliberately messy dataset.
+- [x] Review and approve the phased workflow, cleaning, visualization, and cloud integration plan.
+- [x] Implement clearer workflow and sign-in/save continuity.
+- [x] Strengthen cleaning review, validation, and provenance.
+- [x] Strengthen analytical measures, chart choices, and dashboards.
+- [x] Verify typed and first-sheet Excel guest workflows: approvals, duplicate choices, undo, Analyze, charts, filtering, PDF and reload.
+- [x] Run 15 regression tests, including encryption and save ordering; automatic build passed.
+- [ ] Verify authenticated edits/undo/reload and failure retry against live private cloud saves — blocked: preview signed out and own-account session mint failed; user must sign in.
+- [ ] Walk the user's real Excel/CSV through the workflow — blocked: only screenshots supplied.
 
 - [x] Check the preview's automatic build result.
 - [x] Open existing non-sample account datasets, upgrade legacy saves, and verify encrypted rows match exactly after a fresh reload.

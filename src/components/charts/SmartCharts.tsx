@@ -74,11 +74,11 @@ export function SpecChart({ spec, height = 220 }: { spec: ChartSpec; height?: nu
             <XAxis dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} tickFormatter={compact} />
             <Tooltip contentStyle={tooltipStyle} />
-            <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+            <Line isAnimationActive={false} type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
           </LineChart>
         ) : spec.kind === "pie" ? (
           <PieChart>
-            <Pie data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="80%" paddingAngle={2}>
+            <Pie isAnimationActive={false} data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="80%" paddingAngle={2}>
               {data.map((_, i) => (
                 <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
               ))}
@@ -91,7 +91,7 @@ export function SpecChart({ spec, height = 220 }: { spec: ChartSpec; height?: nu
             <XAxis type="number" dataKey="x" tick={tickStyle} axisLine={false} tickLine={false} tickFormatter={compact} />
             <YAxis type="number" dataKey="y" tick={tickStyle} axisLine={false} tickLine={false} tickFormatter={compact} />
             <Tooltip contentStyle={tooltipStyle} cursor={{ strokeDasharray: "3 3" }} />
-            <Scatter data={data} fill="hsl(var(--primary))" />
+            <Scatter isAnimationActive={false} data={data} fill="hsl(var(--primary))" />
           </ScatterChart>
         ) : (
           <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
@@ -99,7 +99,7 @@ export function SpecChart({ spec, height = 220 }: { spec: ChartSpec; height?: nu
             <XAxis dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} interval={0} height={36} angle={-15} textAnchor="end" />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} tickFormatter={compact} />
             <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "hsl(var(--muted))" }} />
-            <Bar
+            <Bar isAnimationActive={false}
               dataKey="value"
               fill={spec.kind === "histogram" ? "hsl(var(--info))" : "hsl(var(--primary))"}
               radius={[4, 4, 0, 0]}

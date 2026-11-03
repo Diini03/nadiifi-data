@@ -15,7 +15,7 @@ export function StatusBar({ dataset, lastAction }: Props) {
     score >= 85 ? "bg-success" : score >= 60 ? "bg-warning" : "bg-destructive";
 
   return (
-    <footer className="flex h-8 items-center gap-4 border-t border-border/70 bg-sidebar/40 px-4 text-[11px] text-muted-foreground">
+    <footer className="flex min-h-8 flex-wrap items-center gap-2 py-1 sm:gap-4 border-t border-border/70 bg-sidebar/40 px-4 text-[11px] text-muted-foreground">
       <span className="inline-flex items-center gap-1.5">
         <span className={cn("h-1.5 w-1.5 rounded-full", dataset ? "bg-success" : "bg-muted-foreground/50")} />
         {dataset ? t("status.ready") : t("app.datasetPlaceholder")}

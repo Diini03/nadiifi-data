@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { parseFile } from "@/lib/cleanlab/parse";
 import { profileDataset } from "@/lib/cleanlab/profile";
 import { detectIssues } from "@/lib/cleanlab/issues";
-import { applyOperation, operationLabel } from "@/lib/cleanlab/operations";
+import { operationLabel } from "@/lib/cleanlab/operations";
 import { exportCSV } from "@/lib/cleanlab/exporters";
 import { buildSampleFile } from "@/lib/cleanlab/sample";
 import type { CellValue, Dataset, Issue, Operation } from "@/lib/cleanlab/types";
@@ -271,9 +271,9 @@ export default function Home() {
             </div>
           )}
           <h2 className="font-display text-lg font-semibold">Decisions to review</h2>
-          <DateReview key={dataset.updatedAt} dataset={dataset} onApply={applyManual} />
+          <DateReview key={`dates:${dataset.updatedAt}`} dataset={dataset} onApply={applyManual} />
           <CleanSuggestions dataset={dataset} />
-          <BlankFillReview key={dataset.updatedAt} dataset={dataset} onApply={applyManual} />
+          <BlankFillReview key={`blanks:${dataset.updatedAt}`} dataset={dataset} onApply={applyManual} />
           <CategoryOverrides dataset={dataset} onApply={applyManual} />
           <DuplicateReview dataset={dataset} onApply={applyManual} />
           {!!dataset.audit?.length && <section className="border-t border-border pt-4"><h3 className="font-semibold">Changes already applied</h3><ul className="mt-2 space-y-2 text-sm text-muted-foreground">{dataset.audit.map((entry,i) => <li key={i}>{entry.labels.join(" · ")} — {entry.cells} cells changed; {entry.filled} filled values (estimates); {entry.removed} rows removed.</li>)}</ul></section>}
@@ -373,7 +373,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">{dataset.rows.length.toLocaleString()} rows · {step === "clean" ? `${detectIssues(dataset).length} outstanding checks` : `Current stage: ${step}`}</p>
                 <div className="flex items-center gap-2 text-xs"><span role="status">{persistence.status}</span>{persistence.status === "Save failed" && <Button size="sm" variant="outline" onClick={persistence.retry}>Retry save</Button>}{!user && <Button size="sm" variant="outline" asChild><Link to="/auth" state={{from:"/"}}>Sign in to save privately</Link></Button>}</div>
               </div>
-              {renderStep()}
+              <div key={step}>{renderStep()}</div>
               <div className="flex justify-end border-t border-border pt-4"><Button onClick={() => setStep(({data:"clean", clean:"analyze", analyze:"visualize", visualize:"export", export:"data"} as const)[step])}>{({data:"Review cleaning",clean:"Examine findings",analyze:"Create charts",visualize:"Export results",export:"Back to data"} as const)[step]}</Button></div>
             </div>
           ) : stage === "inspecting" ? (

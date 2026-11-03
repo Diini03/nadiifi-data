@@ -7,15 +7,18 @@ export function previewOperations(before: Dataset, operations: Operation[]) {
   let after = before;
   for (const op of operations) after = applyOperation(after, op);
   const changes: { row: number; column: string; before: CellValue; after: CellValue }[] = [];
-  before.rows.forEach((r, i) => Object.keys(r).forEach(column => {
-    if (JSON.stringify(r[column]) !== JSON.stringify(after.rows[i]?.[column])) changes.push({row:i+1,column,before:r[column],after:after.rows[i]?.[column] ?? null});
-  }));
+  const deleting = operations.find(op => op.kind === 'delete_rows');
+  const deleted = new Set(deleting?.kind === 'delete_rows' ? deleting.indices : []);
+  let afterIndex=0;
+  before.rows.forEach((r, i) => { if(deleted.has(i)) return; const ai=afterIndex++; Object.keys(r).forEach(column => {
+    if (JSON.stringify(r[column]) !== JSON.stringify(after.rows[ai]?.[column])) changes.push({row:i+1,column,before:r[column],after:after.rows[ai]?.[column] ?? null});
+  }); });
   return { after, changes, operations };
 }
 export function applyApproved(before: Dataset, operations: Operation[]) {
   const { after, changes } = previewOperations(before, operations);
   const filled = operations.filter(o => o.kind === 'fill_null').reduce((n, o) => n + (o.kind === 'fill_null' ? before.rows.filter(r => isNullish(r[o.column])).length : 0), 0);
-  return {...after, audit: [...(before.audit ?? []), {timestamp:Date.now(), labels:operations.map(operationLabel), operations, affectedRows:[...new Set(changes.map(c=>c.row))], cells:changes.length, filled, removed:Math.max(0,before.rows.length-after.rows.length)}]};
+  return {...after, audit: [...(before.audit ?? []), {timestamp:Date.now(), labels:operations.map(operationLabel), operations, affectedRows:[...new Set([...changes.map(c=>c.row), ...operations.flatMap(op=>op.kind==="delete_rows"?op.indices.map(i=>i+1):[])])], cells:changes.length, filled, removed:Math.max(0,before.rows.length-after.rows.length)}]};
 }
 export function duplicateGroups(ds: Dataset) {
   const groups: {key:string; title:string; indices:number[]}[] = [];

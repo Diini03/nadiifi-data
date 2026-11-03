@@ -7,7 +7,7 @@ function iso(y: number, m: number, d: number): string | null {
   if (y < 100) y += y < 50 ? 2000 : 1900;
   if (m < 1 || m > 12 || d < 1 || d > 31) return null;
   const dt = new Date(Date.UTC(y, m - 1, d));
-  if (dt.getUTCMonth() !== m - 1) return null;
+  if (dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d || dt.getUTCFullYear() !== y) return null;
   return `${y}-${pad(m)}-${pad(d)}`;
 }
 
@@ -38,7 +38,11 @@ export function detectDayFirst(values: CellValue[]): boolean {
 export function parseDateSmart(v: CellValue, dayFirst: boolean): string | null {
   if (isNullish(v)) return null;
   const s = String(v).trim();
-  let m = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(s);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+    if (!iso(Number(s.slice(0,4)),Number(s.slice(5,7)),Number(s.slice(8,10)))) return null;
+    const dt=new Date(s); return Number.isNaN(dt.getTime()) ? null : dt.toISOString();
+  }
+  let m = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/.exec(s);
   if (m) return iso(+m[1], +m[2], +m[3]);
   m = /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/.exec(s);
   if (m) {
