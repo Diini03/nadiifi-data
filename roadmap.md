@@ -1,5 +1,9 @@
 # Verification
 
+## Visual refresh
+- [ ] Polish the home screen, upload area, and navigation without changing data processing.
+- [ ] Verify first-screen layout and sample workflow on desktop and mobile.
+
 ## Reusable cleaning recipes
 - [x] Save reusable non-destructive rules from approved cleaning steps in this browser.
 - [x] Map recipe columns to new datasets and preview selected rules before approval.
