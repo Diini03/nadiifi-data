@@ -6,3 +6,4 @@
 - Serialize encrypted cloud writes through the shared save queue and persist active workflow drafts in IndexedDB, so navigation and rapid edits retain current work.
 - Apply user semantic roles before analytic calculations; use UTC calendar buckets, nonnegative additive shares, and explicit included/excluded counts.
 - Run focused regressions with `bun run test`; browser interaction checks cover workflow integration.
+- Store cleaning recipes in owner-separated browser IndexedDB; replay only selected non-destructive approved rules through the shared preview/audit/undo path, recalculating statistical fills for the destination file so old estimates and row indices never carry over.

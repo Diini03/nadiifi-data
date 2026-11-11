@@ -1,5 +1,10 @@
 # Verification
 
+## Reusable cleaning recipes
+- [x] Save reusable non-destructive rules from approved cleaning steps in this browser.
+- [x] Map recipe columns to new datasets and preview selected rules before approval.
+- [x] Verify recipe reuse, missing-column safeguards, undo, and persistence (20 regressions passed; desktop/mobile walkthrough passed).
+
 ## Workflow and intelligence upgrade
 - [x] Review and approve the phased workflow, cleaning, visualization, and cloud integration plan.
 - [x] Implement clearer workflow and sign-in/save continuity.
