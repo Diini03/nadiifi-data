@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { SiteFooter } from "@/components/nadiifi/SiteFooter";
-import { Undo2, Download, RotateCcw, Sparkles, ShieldCheck, Zap, Gauge } from "lucide-react";
+import { Undo2, Download, RotateCcw, Sparkles, ShieldCheck, Zap, Gauge, ArrowRight, Check, FileSpreadsheet, BarChart3 } from "lucide-react";
 import { Navbar } from "@/components/nadiifi/Navbar";
 import { WorkflowNav, type Step } from "@/components/nadiifi/WorkflowNav";
 import { EmptyDropzone } from "@/components/workspace/EmptyDropzone";
@@ -329,26 +329,22 @@ export default function Home() {
 
       <main className="flex-1">
         {!dataset && (
-          <section id="top" className="mx-auto max-w-5xl px-4 pb-6 pt-14 text-center">
-            <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
-              Clean data. See clearly.
-            </h1>
-            <p className="mx-auto mt-3 max-w-xl text-[15px] text-muted-foreground">
-              Drop a messy CSV, Excel or JSON file. Nadiifi profiles it, flags the problems and
-              hands back analysis-ready data — entirely in your browser.
-            </p>
-            <div className="mt-5 flex items-center justify-center gap-2">
-              <Button size="sm" className="h-9 rounded-md text-[13px] font-semibold shadow-glow" onClick={() => handleFile(buildSampleFile())}>
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Try sample data
-              </Button>
-              <Button size="sm" variant="outline" className="h-9 rounded-md text-[13px]" onClick={scrollToTool}>
-                Upload your file
-              </Button>
+          <section id="top" className="mx-auto max-w-5xl px-4 pb-7 pt-9 text-center sm:pt-12">
+            <div className="mb-4 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" /> Your data, a little clearer.
             </div>
+            <h1 className="font-display text-4xl font-semibold leading-tight tracking-normal sm:text-5xl">
+              Nadiifi<span className="text-cyan">.</span>
+            </h1>
+            <p className="mt-2 font-display text-xl font-medium sm:text-2xl">Clean data. See clearly.</p>
+            <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
+              From messy spreadsheets to findings you can trust.
+              Review every fix. Find the story. Make it yours.
+            </p>
           </section>
         )}
 
-        <div ref={toolRef} id="tool" className="mx-auto w-full max-w-5xl px-4 pb-12">
+        <div ref={toolRef} id="tool" className="mx-auto w-full max-w-5xl scroll-mt-32 px-4 pb-10">
           {dataset ? (
             <div className="space-y-4 pt-6">
               <div className="flex flex-wrap items-center gap-2">
@@ -382,10 +378,15 @@ export default function Home() {
             <InspectingOverlay />
           ) : (
             <>
-              <EmptyDropzone onFile={handleFile} onSample={() => handleFile(buildSampleFile())} />
-              <div className="mt-6 flex items-center justify-center gap-3 text-[12px] text-muted-foreground">
-                <span>or</span>
-                <DatasetBuilder onBuild={openBuilt} />
+              <div className="mx-auto max-w-2xl">
+                <EmptyDropzone onFile={handleFile} onSample={() => handleFile(buildSampleFile())} />
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground">
+                  <span>Starting from scratch?</span>
+                  <DatasetBuilder onBuild={openBuilt} />
+                </div>
+              </div>
+              <div className="mx-auto mt-8 flex max-w-2xl items-center justify-between gap-1 border-t border-border pt-5 text-[11px] text-muted-foreground sm:text-xs" aria-label="Dataset journey">
+                {[{label:"Your data",icon:FileSpreadsheet},{label:"Reviewed fixes",icon:Check},{label:"Clear findings",icon:BarChart3},{label:"Ready to share",icon:Download}].map((item,i) => <div key={item.label} className="flex items-center gap-2"><span className="flex flex-col items-center gap-2 sm:flex-row"><item.icon className={i === 1 ? "h-4 w-4 text-success" : "h-4 w-4 text-cyan"} />{item.label}</span>{i < 3 && <ArrowRight className="ml-2 hidden h-3 w-3 text-muted-foreground/50 sm:block" />}</div>)}
               </div>
               {user && (
                 <div className="mt-8">
@@ -398,11 +399,11 @@ export default function Home() {
 
         {!dataset && (
           <>
-            <section id="how" className="border-t border-border/70 bg-muted/30 py-12">
-              <div className="mx-auto grid max-w-5xl gap-6 px-4 sm:grid-cols-3">
+            <section id="how" className="border-t border-border/70 bg-muted/30 py-10 sm:py-14">
+              <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:grid-cols-3 sm:gap-10">
                 {PROMISES.map((p) => (
                   <div key={p.title}>
-                    <p.icon className="h-5 w-5 text-primary" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card"><p.icon className="h-4 w-4 text-cyan" /></div>
                     <h2 className="mt-3 font-display text-[15px] font-semibold">{p.title}</h2>
                     <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{p.body}</p>
                   </div>
@@ -425,8 +426,8 @@ export default function Home() {
                     "Empty rows and columns",
                     "Mixed data types",
                   ].map((f) => (
-                    <li key={f} className="rounded-md border border-border/70 bg-card px-3 py-2">
-                      {f}
+                    <li key={f} className="flex items-center gap-2 border-b border-border/70 py-3">
+                      <Check className="h-3.5 w-3.5 shrink-0 text-success" />{f}
                     </li>
                   ))}
                 </ul>

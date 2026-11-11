@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, Github } from "lucide-react";
+import { Menu, Github, ArrowUpRight } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,12 +29,12 @@ export function Navbar({ onStart }: { onStart: () => void }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link to="/" className="flex items-center" aria-label="Nadiifi home">
-          <Logo size={26} withWordmark />
+          <Logo size={30} withWordmark wordmarkClassName="text-lg tracking-normal" />
         </Link>
 
-        <nav className="mx-auto hidden items-center gap-1 md:flex" aria-label="Main">
+        <nav className="mx-auto hidden items-center gap-0 lg:flex" aria-label="Main">
           {LINKS.map((l) => (
             <Link
               key={l.to}
@@ -57,7 +57,7 @@ export function Navbar({ onStart }: { onStart: () => void }) {
           </a>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <ThemeToggle />
           {user ? (
             <UserMenu />
@@ -69,14 +69,15 @@ export function Navbar({ onStart }: { onStart: () => void }) {
           <Button
             size="sm"
             onClick={handleStart}
-            className="h-8 rounded-md text-[13px] font-semibold shadow-glow"
+            className="h-9 gap-2 rounded-md text-[13px] font-semibold"
           >
             Start cleaning
+            <ArrowUpRight className="hidden h-3.5 w-3.5 sm:block" />
           </Button>
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8 md:hidden" aria-label="Open menu">
+              <Button variant="outline" size="icon" className="h-9 w-9 lg:hidden" aria-label="Open menu">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
