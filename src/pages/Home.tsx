@@ -10,6 +10,7 @@ import { InspectingOverlay } from "@/components/workspace/InspectingOverlay";
 import { InspectionPanel } from "@/components/workspace/InspectionPanel";
 import { CleanSummary } from "@/components/workspace/CleanSummary";
 import { ChangePreview } from "@/components/workspace/ChangePreview";
+import { CleaningRecipes } from "@/components/workspace/CleaningRecipes";
 import { DateReview } from "@/components/workspace/DateReview";
 import { applyApproved, safeFormatting } from "@/lib/cleanlab/review";
 import { useWorkspacePersistence } from "@/lib/cloud/useWorkspacePersistence";
@@ -243,6 +244,7 @@ export default function Home() {
     if (step === "clean") {
       return (
         <div className="space-y-4">
+          <CleaningRecipes key={dataset.id} dataset={dataset} owner={user?.id} onPreview={setPending} />
           {stage === "cleaned" && cleanResult ? (
             <CleanSummary
               before={cleanResult.before}
